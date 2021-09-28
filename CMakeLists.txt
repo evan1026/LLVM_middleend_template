@@ -6,7 +6,7 @@ project(CAT)
 enable_language(C CXX)
 
 # Find and link with LLVM
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 12 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -33,3 +33,29 @@ add_subdirectory(src)
 
 # Install
 install(PROGRAMS bin/cat-c DESTINATION bin)
+
+###########
+# DOXYGEN #
+###########
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    set(DOXYGEN_GENERATE_HTML NO)
+    set(DOXYGEN_GENERATE_MAN NO)
+    set(DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/llvm.tag)
+    doxygen_add_docs(
+        llvm-doxygen
+        ${LLVM_INCLUDE_DIRS}
+        COMMENT "Generate documentation for llvm"
+    )
+
+    unset(DOXYGEN_GENERATE_TAGFILE)
+    set(DOXYGEN_GENERATE_HTML YES)
+    set(DOXYGEN_GENERATE_MAN YES)
+    set(DOXYGEN_TAGFILES "${CMAKE_BINARY_DIR}/llvm.tag = https://llvm.org/doxygen/")
+    set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+    doxygen_add_docs(
+        doxygen
+        src
+        COMMENT "Generate documentation for cat-c"
+    )
+endif(DOXYGEN_FOUND)

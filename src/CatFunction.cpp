@@ -1,6 +1,9 @@
 #include "CatFunction.hpp"
 
 
+///////////////////////////
+// Static Initialization //
+///////////////////////////
 CAT_MAP CatFunction::GET_CAT_FUNCTIONS() {
     CAT_MAP catFunctions;
     catFunctions.emplace(std::make_pair("CAT_new", CatFunction{"CAT_new", true,  true}));
@@ -13,6 +16,10 @@ CAT_MAP CatFunction::GET_CAT_FUNCTIONS() {
 
 CAT_MAP CatFunction::CAT_FUNCTIONS = CatFunction::GET_CAT_FUNCTIONS();
 
+
+/////////////////
+// Actual Code //
+/////////////////
 CatFunction::CatFunction(std::string name, bool isInitialAssignment, bool isModification) :
     name_(name),
     isInitialAssignment_(isInitialAssignment),
@@ -37,4 +44,10 @@ bool CatFunction::isInitialAssignment() const {
 
 bool CatFunction::isModification() const {
     return isModification_;
+}
+
+std::ostream& operator<<(std::ostream& os, const CatFunction& catFunc) {
+    os << "CatFunc[name=\"" << catFunc.name_ << "\", isInitialAssignment=" << catFunc.isInitialAssignment_
+        << ", isModification=" << catFunc.isModification_ << "]";
+    return os;
 }

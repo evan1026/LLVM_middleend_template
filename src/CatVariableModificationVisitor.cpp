@@ -3,7 +3,7 @@
 #include "CatVariableModificationVisitor.hpp"
 #include "CatFunction.hpp"
 
-void CatVariableModificationVisitor::visitCallInst(llvm::CallInst& callInst) {
+void CatVariableModificationVisitor::visitCallInst(llvm::CallInst& callInst) const {
     const CatFunction* func = CatFunction::get(callInst.getCalledFunction()->getName().str());
     if (func) {
         if (func->isModification()) {
