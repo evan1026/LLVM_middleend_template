@@ -47,14 +47,14 @@ class CatFunction {
          * @param name The name of the CatFunction to retrieve.
          * @return A CatFunction pointer pointing to the object if it was found, or `nullptr` if not
          */
-        static const CatFunction* get(const std::string& name);;
+        static const CatFunction* get(const std::string& name);
 
         /**
          * Gets the name of the CatFunction.
          *
          * @return The name of the CatFunction
          */
-        const std::string& getName() const;
+        const std::string& getName() const { return name_; }
 
         /**
          * Returns whether this CatFunction performs an initial assignment
@@ -65,7 +65,7 @@ class CatFunction {
          *
          * @return `true` if this CatFunction performs an initial assignment, `false` otherwise.
          */
-        bool isInitialAssignment() const;
+        bool isInitialAssignment() const { return isInitialAssignment_; }
 
         /**
          * Returns whether this CatFunction modifies the value of a CAT object.
@@ -74,7 +74,7 @@ class CatFunction {
          *
          * @return `true` if this CatFunction performs a modification, `false` otherwise.
          */
-        bool isModification() const;
+        bool isModification() const { return isModification_; }
 
         /**
          * Output operator for CatFunction objects.

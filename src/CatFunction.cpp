@@ -34,18 +34,6 @@ const CatFunction* CatFunction::get(const std::string& name) {
     }
 }
 
-const std::string& CatFunction::getName() const {
-    return name_;
-}
-
-bool CatFunction::isInitialAssignment() const {
-    return isInitialAssignment_;
-}
-
-bool CatFunction::isModification() const {
-    return isModification_;
-}
-
 std::ostream& operator<<(std::ostream& os, const CatFunction& catFunc) {
     os << "CatFunc[name=\"" << catFunc.name_ << "\", isInitialAssignment=" << catFunc.isInitialAssignment_
         << ", isModification=" << catFunc.isModification_ << "]";
