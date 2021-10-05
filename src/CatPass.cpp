@@ -5,7 +5,7 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/IR/InstIterator.h"
 
-#include "CatVariableModificationVisitor.hpp"
+#include "CatCallInstVisitor.hpp"
 
 using namespace llvm;
 
@@ -13,7 +13,7 @@ namespace {
   struct CAT : public FunctionPass {
     static char ID;
 
-    CatVariableModificationVisitor visitor;
+    CatCallInstVisitor visitor;
 
     CAT() : FunctionPass(ID), visitor() {}
 
