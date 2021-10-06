@@ -19,7 +19,24 @@ llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::vector<llvm::Cal
   return os;
 }
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::map<llvm::Value*, std::vector<llvm::CallInst*>>& map) {
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::unordered_set<llvm::CallInst*>& callInsts) {
+  os << "[\n";
+  ++indent;
+  for(llvm::CallInst* callInst : callInsts) {
+    for (int i = 0; i < indent; ++i) {
+      os << "    ";
+    }
+    os << *callInst << ",\n";
+  }
+  --indent;
+  for (int i = 0; i < indent; ++i) {
+    os << "    ";
+  }
+  os << "]\n";
+  return os;
+}
+
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const MAP_TYPE& map) {
   os << "{\n";
   ++indent;
 

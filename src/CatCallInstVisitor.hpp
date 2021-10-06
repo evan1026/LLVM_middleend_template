@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
+#include <unordered_set>
 
 #include <llvm/IR/InstVisitor.h>
 
-using MAP_TYPE = std::map<llvm::Value*, std::vector<llvm::CallInst*>>;
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::CallInst*>>;
 
 /**
  * An llvm::InstVisitor that collects call instructions and stores them in various

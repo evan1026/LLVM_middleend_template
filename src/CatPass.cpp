@@ -6,6 +6,8 @@
 #include "llvm/IR/InstIterator.h"
 
 #include "CatCallInstVisitor.hpp"
+#include "CatGenKillVisitor.hpp"
+#include "DataStructureOutput.hpp"
 
 using namespace llvm;
 
@@ -14,6 +16,7 @@ namespace {
     static char ID;
 
     CatCallInstVisitor visitor;
+    CatGenKillVisitor genKillVisitor;
 
     CAT() : FunctionPass(ID), visitor() {}
 
@@ -26,7 +29,12 @@ namespace {
     // This function is invoked once per function compiled
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
     bool runOnFunction (Function &F) override {
+      errs() << "Function \"" << F.getName() << "\" \n";
       visitor.visit(F);
+
+      genKillVisitor.setCallInstructions(visitor.getCallInstructions());
+      genKillVisitor.setValueModifications(visitor.getValueModifications());
+      genKillVisitor.visit(F);
       return false;
     }
 

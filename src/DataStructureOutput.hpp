@@ -1,6 +1,12 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/Instructions.h"
 
+#include <vector>
+#include <unordered_set>
+#include <map>
+
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::CallInst*>>;
+
 /**
  * Output operator for a list of call instructions.
  *
@@ -11,10 +17,19 @@
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::vector<llvm::CallInst*>& callInsts);
 
 /**
+ * Output operator for a set of call instructions.
+ *
+ * @param os The output stream to output to.
+ * @param callInsts The set of call instructions.
+ * @return os
+ */
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::unordered_set<llvm::CallInst*>& callInsts);
+
+/**
  * Output operator for a map of values to call instructions that modify them.
  *
  * @param os The output stream to output to.
  * @param callInsts The value-call instruction map.
  * @return os
  */
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::map<llvm::Value*, std::vector<llvm::CallInst*>>& map);
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const MAP_TYPE& map);

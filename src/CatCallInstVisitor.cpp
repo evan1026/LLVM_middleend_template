@@ -2,7 +2,7 @@
 #include "CatFunction.hpp"
 
 void CatCallInstVisitor::addModification(llvm::Value* value, llvm::CallInst* callInst) {
-    valueModificationMap_[value].push_back(callInst);  // operator[] will default construct vector if it's not there
+    valueModificationMap_[value].insert(callInst);  // operator[] will default construct vector if it's not there
 }
 
 void CatCallInstVisitor::visitCallInst(llvm::CallInst& callInst) {
@@ -16,7 +16,6 @@ void CatCallInstVisitor::visitCallInst(llvm::CallInst& callInst) {
             } else if (callInst.getArgOperand(0)) {
                 addModification(callInst.getArgOperand(0), &callInst);
             }
-            llvm::errs() << "\n";
         }
     }
 }
