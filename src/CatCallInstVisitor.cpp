@@ -6,10 +6,9 @@ void CatCallInstVisitor::addModification(llvm::Value* value, llvm::CallInst* cal
 }
 
 void CatCallInstVisitor::visitCallInst(llvm::CallInst& callInst) {
-    callInstructions_.push_back(&callInst);
-
     const CatFunction* func = CatFunction::get(callInst.getCalledFunction()->getName().str());
     if (func) {
+        callInstructions_.push_back(&callInst);
         if (func->isModification()) {
             if (func->isInitialAssignment()) {
                 addModification(&callInst, &callInst);
