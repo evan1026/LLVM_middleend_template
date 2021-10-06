@@ -1,25 +1,24 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "CatGenKillVisitor.hpp"
-#include "CatFunction.hpp"
 
-static void printBitVector(const llvm::SmallBitVector& bitVector, const std::vector<llvm::CallInst*>& callInstructions) {
-    for (size_t i = 0; i < callInstructions.size(); ++i) {
+void CatGenKillVisitor::printBitVector(const llvm::SmallBitVector& bitVector) {
+    for (size_t i = 0; i < callInstructions_->size(); ++i) {
         if (bitVector.test(i)) {
-            llvm::errs() << " " << *callInstructions[i] << "\n";
+            llvm::errs() << " " << *(*callInstructions_)[i] << "\n";
         }
     }
 }
 
-static void printInstruction(const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::CallInst*>& callInstructions) {
+void CatGenKillVisitor::printInstruction(const llvm::Instruction* callInst, const CatDataDependencies& dataDeps) {
     llvm::errs() << "INSTRUCTION: " << *callInst << "\n***************** GEN\n{\n";
-    printBitVector(dataDeps.genSet, callInstructions);
+    printBitVector(dataDeps.genSet);
     llvm::errs() << "}\n**************************************\n***************** KILL\n{\n";
-    printBitVector(dataDeps.killSet, callInstructions);
+    printBitVector(dataDeps.killSet);
     llvm::errs() << "}\n**************************************\n\n\n\n";
 }
 
-static llvm::Value* getModifiedValue(const CatFunction* func, llvm::CallInst& callInst) {
+llvm::Value* CatGenKillVisitor::getModifiedValue(const CatFunction* func, llvm::CallInst& callInst) {
     llvm::Value* modifiedValue = nullptr;
     if (func->isModification()) {
         if (func->isInitialAssignment()) {
@@ -63,5 +62,5 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
                         std::forward_as_tuple(genSet, killSet));
 
     // TODO: remove this after H1
-    printInstruction(&inst, genKillMap_.at(&inst), *callInstructions_);
+    printInstruction(&inst, genKillMap_.at(&inst));
 }

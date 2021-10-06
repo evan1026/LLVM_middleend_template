@@ -7,6 +7,7 @@
 #include <llvm/IR/InstVisitor.h>
 
 #include "CatDataDependencies.hpp"
+#include "CatFunction.hpp"
 
 using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::CallInst*>>;
 
@@ -24,6 +25,31 @@ class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
 
     // GEN and KILL sets are stored here
     std::map<llvm::Instruction*, CatDataDependencies> genKillMap_;
+
+    /**
+     * Prints out an instruction in H1 gen/kill format.
+     *
+     * @param callInst Instruction to print
+     * @param dataDeps Data structure containing gen/kill sets
+     */
+    void printInstruction(const llvm::Instruction* callInst, const CatDataDependencies& dataDeps);
+
+    /**
+     * Prints a single bit vector assuming the indeces correspond to the instructions
+     * within callInstructions_.
+     *
+     * @param bitVector Bit vector to print
+     */
+    void printBitVector(const llvm::SmallBitVector& bitVector);
+
+    /**
+     * Gets the llvm::Value that is modified by a given CAT function.
+     *
+     * @param func CAT function to analyze
+     * @param callInst Call instruction representing the CAT function
+     * @return The llvm::Value that is modified by the CAT function, or nullptr if the instruction doesn't modify anything
+     */
+    llvm::Value* getModifiedValue(const CatFunction* func, llvm::CallInst& callInst);
 
     public:
 
