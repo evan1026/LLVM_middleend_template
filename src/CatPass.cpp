@@ -14,11 +14,8 @@ namespace {
   struct CAT : public llvm::FunctionPass {
     static char ID;
 
-    CatCallInstVisitor callInstVisitor;
-    CatGenKillVisitor genKillVisitor;
-    CatInOutProcessor inOutProcessor;
 
-    CAT() : FunctionPass(ID), callInstVisitor(), genKillVisitor(), inOutProcessor() {}
+    CAT() : FunctionPass(ID) {}
 
     // This function is invoked once at the initialization phase of the compiler
     // The LLVM IR of functions isn't ready at this point
@@ -29,6 +26,10 @@ namespace {
     // This function is invoked once per function compiled
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
     bool runOnFunction (llvm::Function &F) override {
+      CatCallInstVisitor callInstVisitor;
+      CatGenKillVisitor genKillVisitor;
+      CatInOutProcessor inOutProcessor;
+
       llvm::errs() << "Function \"" << F.getName() << "\" \n";
       callInstVisitor.visit(F);
 
@@ -46,6 +47,7 @@ namespace {
       } while (inOutProcessor.changesHappened());
 
       inOutProcessor.print();
+      //genKillVisitor.print();
 
       return false;
     }

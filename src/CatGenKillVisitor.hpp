@@ -69,4 +69,6 @@ class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
         const auto& getGenKillMap() {
             return genKillMap_;
         }
+
+        void print();
 };

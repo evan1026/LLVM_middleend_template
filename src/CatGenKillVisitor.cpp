@@ -1,6 +1,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "CatGenKillVisitor.hpp"
+#include "DataStructureOutput.hpp"
 
 llvm::Value* CatGenKillVisitor::getModifiedValue(const CatFunction* func, llvm::CallInst& callInst) {
     llvm::Value* modifiedValue = nullptr;
@@ -45,4 +46,10 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
                         std::forward_as_tuple(&inst),
                         std::forward_as_tuple(genSet, killSet));
 
+}
+
+void CatGenKillVisitor::print() {
+    for (llvm::CallInst* callInst : *callInstructions_) {
+        printGenKillSets(llvm::errs(), callInst, genKillMap_.at(callInst), *callInstructions_);
+    }
 }
