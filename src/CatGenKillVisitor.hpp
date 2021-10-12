@@ -27,22 +27,6 @@ class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
     std::map<llvm::Instruction*, CatDataDependencies> genKillMap_;
 
     /**
-     * Prints out an instruction in H1 gen/kill format.
-     *
-     * @param callInst Instruction to print
-     * @param dataDeps Data structure containing gen/kill sets
-     */
-    void printInstruction(const llvm::Instruction* callInst, const CatDataDependencies& dataDeps);
-
-    /**
-     * Prints a single bit vector assuming the indeces correspond to the instructions
-     * within callInstructions_.
-     *
-     * @param bitVector Bit vector to print
-     */
-    void printBitVector(const llvm::SmallBitVector& bitVector);
-
-    /**
      * Gets the llvm::Value that is modified by a given CAT function.
      *
      * @param func CAT function to analyze

@@ -2,22 +2,6 @@
 
 #include "CatGenKillVisitor.hpp"
 
-void CatGenKillVisitor::printBitVector(const llvm::SmallBitVector& bitVector) {
-    for (size_t i = 0; i < callInstructions_->size(); ++i) {
-        if (bitVector.test(i)) {
-            llvm::errs() << " " << *(*callInstructions_)[i] << "\n";
-        }
-    }
-}
-
-void CatGenKillVisitor::printInstruction(const llvm::Instruction* callInst, const CatDataDependencies& dataDeps) {
-    llvm::errs() << "INSTRUCTION: " << *callInst << "\n***************** GEN\n{\n";
-    printBitVector(dataDeps.genSet);
-    llvm::errs() << "}\n**************************************\n***************** KILL\n{\n";
-    printBitVector(dataDeps.killSet);
-    llvm::errs() << "}\n**************************************\n\n\n\n";
-}
-
 llvm::Value* CatGenKillVisitor::getModifiedValue(const CatFunction* func, llvm::CallInst& callInst) {
     llvm::Value* modifiedValue = nullptr;
     if (func->isModification()) {
