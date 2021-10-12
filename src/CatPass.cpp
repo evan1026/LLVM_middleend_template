@@ -7,51 +7,50 @@
 
 #include "CatCallInstVisitor.hpp"
 #include "CatGenKillVisitor.hpp"
-#include "CatInOutVisitor.hpp"
+#include "CatInOutProcessor.hpp"
 #include "DataStructureOutput.hpp"
 
-using namespace llvm;
-
 namespace {
-  struct CAT : public FunctionPass {
+  struct CAT : public llvm::FunctionPass {
     static char ID;
 
     CatCallInstVisitor callInstVisitor;
     CatGenKillVisitor genKillVisitor;
-    CatInOutVisitor inOutVisitor;
+    CatInOutProcessor inOutProcessor;
 
-    CAT() : FunctionPass(ID), callInstVisitor(), genKillVisitor(), inOutVisitor() {}
+    CAT() : FunctionPass(ID), callInstVisitor(), genKillVisitor(), inOutProcessor() {}
 
     // This function is invoked once at the initialization phase of the compiler
     // The LLVM IR of functions isn't ready at this point
-    bool doInitialization (Module &M) override {
+    bool doInitialization (llvm::Module &M) override {
       return false;
     }
 
     // This function is invoked once per function compiled
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
-    bool runOnFunction (Function &F) override {
-      errs() << "Function \"" << F.getName() << "\" \n";
+    bool runOnFunction (llvm::Function &F) override {
+      llvm::errs() << "Function \"" << F.getName() << "\" \n";
       callInstVisitor.visit(F);
 
       genKillVisitor.setCallInstructions(callInstVisitor.getCallInstructions());
       genKillVisitor.setValueModifications(callInstVisitor.getValueModifications());
       genKillVisitor.visit(F);
 
-      auto genKillMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
-      inOutVisitor.setDataDepsMap(genKillMap);
-      inOutVisitor.setCallInstructions(callInstVisitor.getCallInstructions());
-      inOutVisitor.setValueModifications(callInstVisitor.getValueModifications());
+      auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
+      inOutProcessor.setDataDepsMap(dataDepsMap);
+      inOutProcessor.setCallInstructions(callInstVisitor.getCallInstructions());
+      inOutProcessor.setValueModifications(callInstVisitor.getValueModifications());
+
       do {
-        inOutVisitor.visit(F);
-      } while (inOutVisitor.changesHappened());
+        inOutProcessor.processOnce(F);
+      } while (inOutProcessor.changesHappened());
 
       return false;
     }
 
     // We don't modify the program, so we preserve all analyses.
     // The LLVM IR of functions isn't ready at this point
-    void getAnalysisUsage(AnalysisUsage &AU) const override {
+    void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {
       AU.setPreservesAll();
     }
   };
@@ -59,13 +58,13 @@ namespace {
 
 // Next there is code to register your pass to "opt"
 char CAT::ID = 0;
-static RegisterPass<CAT> X("CAT", "Homework for the CAT class");
+static llvm::RegisterPass<CAT> X("CAT", "Homework for the CAT class");
 
 // Next there is code to register your pass to "clang"
 static CAT * _PassMaker = NULL;
-static RegisterStandardPasses _RegPass1(PassManagerBuilder::EP_OptimizerLast,
-    [](const PassManagerBuilder&, legacy::PassManagerBase& PM) {
+static llvm::RegisterStandardPasses _RegPass1(llvm::PassManagerBuilder::EP_OptimizerLast,
+    [](const llvm::PassManagerBuilder&, llvm::legacy::PassManagerBase& PM) {
         if(!_PassMaker){ PM.add(_PassMaker = new CAT());}}); // ** for -Ox
-static RegisterStandardPasses _RegPass2(PassManagerBuilder::EP_EnabledOnOptLevel0,
-    [](const PassManagerBuilder&, legacy::PassManagerBase& PM) {
+static llvm::RegisterStandardPasses _RegPass2(llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
+    [](const llvm::PassManagerBuilder&, llvm::legacy::PassManagerBase& PM) {
         if(!_PassMaker){ PM.add(_PassMaker = new CAT()); }}); // ** for -O0

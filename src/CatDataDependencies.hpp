@@ -44,4 +44,14 @@ struct CatDataDependencies {
         inSet(),
         outSet()
     {}
+
+    /**
+     * Constructor.
+     */
+    CatDataDependencies() :
+        genSet(),
+        killSet(),
+        inSet(),
+        outSet()
+    {}
 };
