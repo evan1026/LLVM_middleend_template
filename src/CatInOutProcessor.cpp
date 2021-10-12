@@ -44,7 +44,8 @@ llvm::CallInst* CatInOutProcessor::processInstruction(llvm::Instruction& inst, l
             instDeps.inSet = bbDataDepsMap_[inst.getParent()].inSet;
         }
 
-        instDeps.outSet = instDeps.genSet | instDeps.inSet.reset(instDeps.killSet);
+        llvm::SmallBitVector inSetCopy = instDeps.inSet;
+        instDeps.outSet = instDeps.genSet | inSetCopy.reset(instDeps.killSet);
         if (instDeps.outSet != prevOutSet) {
             changesHappened_ = true;
         }
