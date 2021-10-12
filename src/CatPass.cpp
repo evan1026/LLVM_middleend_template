@@ -7,6 +7,7 @@
 
 #include "CatCallInstVisitor.hpp"
 #include "CatGenKillVisitor.hpp"
+#include "CatInOutVisitor.hpp"
 #include "DataStructureOutput.hpp"
 
 using namespace llvm;
@@ -15,10 +16,11 @@ namespace {
   struct CAT : public FunctionPass {
     static char ID;
 
-    CatCallInstVisitor visitor;
+    CatCallInstVisitor callInstVisitor;
     CatGenKillVisitor genKillVisitor;
+    CatInOutVisitor inOutVisitor;
 
-    CAT() : FunctionPass(ID), visitor() {}
+    CAT() : FunctionPass(ID), callInstVisitor(), genKillVisitor(), inOutVisitor() {}
 
     // This function is invoked once at the initialization phase of the compiler
     // The LLVM IR of functions isn't ready at this point
@@ -30,11 +32,20 @@ namespace {
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
     bool runOnFunction (Function &F) override {
       errs() << "Function \"" << F.getName() << "\" \n";
-      visitor.visit(F);
+      callInstVisitor.visit(F);
 
-      genKillVisitor.setCallInstructions(visitor.getCallInstructions());
-      genKillVisitor.setValueModifications(visitor.getValueModifications());
+      genKillVisitor.setCallInstructions(callInstVisitor.getCallInstructions());
+      genKillVisitor.setValueModifications(callInstVisitor.getValueModifications());
       genKillVisitor.visit(F);
+
+      auto genKillMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
+      inOutVisitor.setDataDepsMap(genKillMap);
+      inOutVisitor.setCallInstructions(callInstVisitor.getCallInstructions());
+      inOutVisitor.setValueModifications(callInstVisitor.getValueModifications());
+      do {
+        inOutVisitor.visit(F);
+      } while (inOutVisitor.changesHappened());
+
       return false;
     }
 

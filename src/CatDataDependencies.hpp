@@ -18,9 +18,19 @@ struct CatDataDependencies {
     llvm::SmallBitVector genSet;
 
     /**
-     * KILL set for an instruction
+     * KILL set for an instruction.
      */
     llvm::SmallBitVector killSet;
+
+    /**
+     * IN set for an instruction.
+     */
+    llvm::SmallBitVector inSet;
+
+    /**
+     * OUT set for an instruction.
+     */
+    llvm::SmallBitVector outSet;
 
     /**
      * Constructor.
@@ -30,6 +40,8 @@ struct CatDataDependencies {
      */
     CatDataDependencies(const llvm::SmallBitVector& genSet_, const llvm::SmallBitVector& killSet_) :
         genSet(genSet_),
-        killSet(killSet_)
+        killSet(killSet_),
+        inSet(),
+        outSet()
     {}
 };

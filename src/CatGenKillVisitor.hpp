@@ -81,4 +81,8 @@ class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
         void setValueModifications(const MAP_TYPE& valueModificationMap) {
             valueModificationMap_ = &valueModificationMap;
         }
+
+        const auto& getGenKillMap() {
+            return genKillMap_;
+        }
 };

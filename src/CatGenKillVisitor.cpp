@@ -61,6 +61,4 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
                         std::forward_as_tuple(&inst),
                         std::forward_as_tuple(genSet, killSet));
 
-    // TODO: remove this after H1
-    printInstruction(&inst, genKillMap_.at(&inst));
 }
