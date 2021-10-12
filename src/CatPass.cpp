@@ -45,6 +45,8 @@ namespace {
         inOutProcessor.processOnce(F);
       } while (inOutProcessor.changesHappened());
 
+      inOutProcessor.print();
+
       return false;
     }
 

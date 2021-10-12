@@ -1,7 +1,9 @@
 #include <llvm/IR/CFG.h>
 #include <llvm/IR/Instructions.h>
+#include "llvm/Support/raw_ostream.h"
 
 #include "CatInOutProcessor.hpp"
+#include "DataStructureOutput.hpp"
 
 void CatInOutProcessor::processOnce(llvm::Function& func) {
     changesHappened_ = false;
@@ -49,4 +51,10 @@ llvm::CallInst* CatInOutProcessor::processInstruction(llvm::Instruction& inst, l
     }
 
     return newPrevInst;
+}
+
+void CatInOutProcessor::print() {
+    for (llvm::CallInst* callInst : *callInstructions_) {
+        printInOutSets(llvm::errs(), callInst, dataDepsMap_->at(callInst), *callInstructions_);
+    }
 }
