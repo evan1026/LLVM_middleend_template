@@ -1,4 +1,5 @@
 # LLVM_middleend_template
+![](https://github.com/evan1026/LLVM_middleend_template/workflows/C/C++%20CI/badge.svg?branch=master)
 
 This is the template to use for assignments of the Code Analysis and Transformation class at Northwestern University.
 
