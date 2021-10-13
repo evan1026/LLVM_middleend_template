@@ -40,10 +40,7 @@ namespace {
       auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
       inOutProcessor.setDataDepsMap(dataDepsMap);
       inOutProcessor.setMappedInstructions(instVisitor.getMappedInstructions());
-
-      do {
-        inOutProcessor.processOnce(F);
-      } while (inOutProcessor.changesHappened());
+      inOutProcessor.process(F);
 
       // TODO remove after H2
       inOutProcessor.print();

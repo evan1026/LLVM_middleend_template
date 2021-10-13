@@ -12,6 +12,12 @@ void CatInOutProcessor::processOnce(llvm::Function& func) {
     }
 }
 
+void CatInOutProcessor::process(llvm::Function& func) {
+    do {
+        processOnce(func);
+    } while (changesHappened());
+}
+
 void CatInOutProcessor::processBasicBlock(llvm::BasicBlock& bb) {
     llvm::Instruction* prevInst = nullptr;
     CatDataDependencies& bbDeps = bbDataDepsMap_[&bb];

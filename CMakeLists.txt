@@ -51,7 +51,7 @@ if (DOXYGEN_FOUND)
     unset(DOXYGEN_GENERATE_TAGFILE)
     set(DOXYGEN_GENERATE_HTML YES)
     set(DOXYGEN_GENERATE_MAN YES)
-    set(DOXYGEN_TAGFILES "${CMAKE_BINARY_DIR}/llvm.tag = https://llvm.org/doxygen/")
+    set(DOXYGEN_TAGFILES "${CMAKE_SOURCE_DIR}/tagfiles/llvm.tag=https://llvm.org/doxygen/" "${CMAKE_SOURCE_DIR}/tagfiles/libstdc++.tag=http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen")
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
     doxygen_add_docs(
         doxygen

@@ -13,8 +13,8 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
 
 /**
  * Visitor class that generates GEN and KILL sets for each
- * llvm::Instruction. Must run after CatCallInstVisitor and must
- * have called setCallInstructions() and setValueModifications()
+ * llvm::Instruction. Must run after CatInstructionVisitor and must
+ * have called setMappedInstructions() and setValueModifications()
  * before calling visit(). No checks are done to ensure these
  * preconditions are met.
  */
@@ -66,9 +66,15 @@ class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
             valueModificationMap_ = &valueModificationMap;
         }
 
+        /**
+         * Gets the generated GEN/KILL sets for each instruction.
+         */
         const auto& getGenKillMap() {
             return genKillMap_;
         }
 
+        /**
+         * Prints GEN/KILL sets in the H1 format.
+         */
         void print();
 };
