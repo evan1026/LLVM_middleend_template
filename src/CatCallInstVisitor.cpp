@@ -6,7 +6,7 @@ void CatCallInstVisitor::addModification(llvm::Value* value, llvm::CallInst* cal
 }
 
 void CatCallInstVisitor::visitCallInst(llvm::CallInst& callInst) {
-    callInstructions_.push_back(&callInst);
+    mappedInstructions_.push_back(&callInst);
 
     const CatFunction* func = CatFunction::get(callInst.getCalledFunction()->getName().str());
     if (func) {
@@ -18,4 +18,8 @@ void CatCallInstVisitor::visitCallInst(llvm::CallInst& callInst) {
             }
         }
     }
+}
+
+void CatCallInstVisitor::visitReturnInst(llvm::ReturnInst& retInst) {
+    mappedInstructions_.push_back(&retInst);
 }

@@ -55,12 +55,12 @@ llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const MAP_TYPE& map) {
     return os;
 }
 
-void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::CallInst*>& callInstructions) {
+void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::Instruction*>& instructions) {
     llvm::SmallBitVector resizedBitVector = bitVector;
-    resizedBitVector.resize(callInstructions.size());
-    for (size_t i = 0; i < callInstructions.size(); ++i) {
+    resizedBitVector.resize(instructions.size());
+    for (size_t i = 0; i < instructions.size(); ++i) {
         if (resizedBitVector.test(i)) {
-            os << " " << *callInstructions[i] << "\n";
+            os << " " << *instructions[i] << "\n";
         }
     }
 }
@@ -73,24 +73,24 @@ static void printFooter(llvm::raw_ostream& os) {
     os << "}\n**************************************\n";
 }
 
-void printGenKillSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::CallInst*>& callInstructions) {
+void printGenKillSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Instruction*>& instructions) {
     os << "INSTRUCTION: " << *callInst << "\n";
     printHeader(os, "GEN");
-    printBitVector(os, dataDeps.genSet, callInstructions);
+    printBitVector(os, dataDeps.genSet, instructions);
     printFooter(os);
     printHeader(os, "KILL");
-    printBitVector(os, dataDeps.killSet, callInstructions);
+    printBitVector(os, dataDeps.killSet, instructions);
     printFooter(os);
     os << "\n\n\n";
 }
 
-void printInOutSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::CallInst*>& callInstructions) {
+void printInOutSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Instruction*>& instructions) {
     os << "INSTRUCTION: " << *callInst << "\n";
     printHeader(os, "IN");
-    printBitVector(os, dataDeps.inSet, callInstructions);
+    printBitVector(os, dataDeps.inSet, instructions);
     printFooter(os);
     printHeader(os, "OUT");
-    printBitVector(os, dataDeps.outSet, callInstructions);
+    printBitVector(os, dataDeps.outSet, instructions);
     printFooter(os);
     os << "\n\n\n";
 }

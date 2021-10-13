@@ -4,7 +4,7 @@
 
 #include <llvm/IR/InstVisitor.h>
 
-using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::CallInst*>>;
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
 
 /**
  * An llvm::InstVisitor that collects call instructions and stores them in various
@@ -12,7 +12,7 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::CallInst*>>;
  */
 class CatCallInstVisitor : public llvm::InstVisitor<CatCallInstVisitor> {
 
-    std::vector<llvm::CallInst*> callInstructions_; // List of all CAT instructions
+    std::vector<llvm::Instruction*> mappedInstructions_; // List of all noteworthy instructions
     MAP_TYPE valueModificationMap_; // Maps values to all instructions that modify them
 
     /**
@@ -38,12 +38,14 @@ class CatCallInstVisitor : public llvm::InstVisitor<CatCallInstVisitor> {
          */
         void visitCallInst(llvm::CallInst& callInst);
 
+        void visitReturnInst(llvm::ReturnInst& retInst);
+
         /**
-         * Gets all processed CAT instructions.
+         * Gets all processed instructions.
          *
-         * @return A vector of CAT instructions that have been processed by the visitor.
+         * @return A vector of instructions that have been processed by the visitor.
          */
-        const auto& getCallInstructions() const { return callInstructions_; }
+        const auto& getMappedInstructions() const { return mappedInstructions_; }
 
         /**
          * Gets a map from llvm::Value pointers to a list of pointers to the call instructions that modify them.

@@ -16,8 +16,8 @@ llvm::Value* CatGenKillVisitor::getModifiedValue(const CatFunction* func, llvm::
 }
 
 void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
-    llvm::SmallBitVector genSet(callInstructions_->size());
-    llvm::SmallBitVector killSet(callInstructions_->size());
+    llvm::SmallBitVector genSet(mappedInstructions_->size());
+    llvm::SmallBitVector killSet(mappedInstructions_->size());
 
     if (llvm::isa<llvm::CallInst>(inst)) {
         llvm::CallInst& callInst = llvm::cast<llvm::CallInst>(inst);
@@ -27,8 +27,8 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
             llvm::Value* modifiedValue = getModifiedValue(func, callInst);
 
             if (modifiedValue) {
-                for (size_t i = 0; i < callInstructions_->size(); ++i) {
-                    auto& thisInst = *(*callInstructions_)[i];
+                for (size_t i = 0; i < mappedInstructions_->size(); ++i) {
+                    auto& thisInst = *(*mappedInstructions_)[i];
                     if (&thisInst == &callInst) {  // LLVM doesn't define == operators but each instruction is only at one address so we do pointer comparison
                         genSet.set(i);
                     } else if (valueModificationMap_->find(modifiedValue) != valueModificationMap_->end()) {
@@ -49,7 +49,7 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
 }
 
 void CatGenKillVisitor::print() {
-    for (llvm::CallInst* callInst : *callInstructions_) {
-        printGenKillSets(llvm::errs(), callInst, genKillMap_.at(callInst), *callInstructions_);
+    for (llvm::Instruction* callInst : *mappedInstructions_) {
+        printGenKillSets(llvm::errs(), callInst, genKillMap_.at(callInst), *mappedInstructions_);
     }
 }

@@ -33,14 +33,13 @@ namespace {
       llvm::errs() << "Function \"" << F.getName() << "\" \n";
       callInstVisitor.visit(F);
 
-      genKillVisitor.setCallInstructions(callInstVisitor.getCallInstructions());
+      genKillVisitor.setMappedInstructions(callInstVisitor.getMappedInstructions());
       genKillVisitor.setValueModifications(callInstVisitor.getValueModifications());
       genKillVisitor.visit(F);
 
       auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
       inOutProcessor.setDataDepsMap(dataDepsMap);
-      inOutProcessor.setCallInstructions(callInstVisitor.getCallInstructions());
-      inOutProcessor.setValueModifications(callInstVisitor.getValueModifications());
+      inOutProcessor.setMappedInstructions(callInstVisitor.getMappedInstructions());
 
       do {
         inOutProcessor.processOnce(F);

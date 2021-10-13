@@ -13,7 +13,7 @@ void CatInOutProcessor::processOnce(llvm::Function& func) {
 }
 
 void CatInOutProcessor::processBasicBlock(llvm::BasicBlock& bb) {
-    llvm::CallInst* prevInst = nullptr;
+    llvm::Instruction* prevInst = nullptr;
     CatDataDependencies& bbDeps = bbDataDepsMap_[&bb];
 
     bbDeps.inSet.clear();
@@ -30,8 +30,8 @@ void CatInOutProcessor::processBasicBlock(llvm::BasicBlock& bb) {
     }
 }
 
-llvm::CallInst* CatInOutProcessor::processInstruction(llvm::Instruction& inst, llvm::CallInst* prevInst) {
-    llvm::CallInst* newPrevInst = prevInst;
+llvm::Instruction* CatInOutProcessor::processInstruction(llvm::Instruction& inst, llvm::Instruction* prevInst) {
+    llvm::Instruction* newPrevInst = prevInst;
     llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(&inst);
     if (callInst) {
         newPrevInst = callInst;
@@ -55,7 +55,7 @@ llvm::CallInst* CatInOutProcessor::processInstruction(llvm::Instruction& inst, l
 }
 
 void CatInOutProcessor::print() {
-    for (llvm::CallInst* callInst : *callInstructions_) {
-        printInOutSets(llvm::errs(), callInst, dataDepsMap_->at(callInst), *callInstructions_);
+    for (llvm::Instruction* callInst : *mappedInstructions_) {
+        printInOutSets(llvm::errs(), callInst, dataDepsMap_->at(callInst), *mappedInstructions_);
     }
 }
