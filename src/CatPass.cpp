@@ -5,7 +5,7 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/IR/InstIterator.h"
 
-#include "CatCallInstVisitor.hpp"
+#include "CatInstructionVisitor.hpp"
 #include "CatGenKillVisitor.hpp"
 #include "CatInOutProcessor.hpp"
 #include "DataStructureOutput.hpp"
@@ -26,25 +26,26 @@ namespace {
     // This function is invoked once per function compiled
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
     bool runOnFunction (llvm::Function &F) override {
-      CatCallInstVisitor callInstVisitor;
+      CatInstructionVisitor instVisitor;
       CatGenKillVisitor genKillVisitor;
       CatInOutProcessor inOutProcessor;
 
       llvm::errs() << "Function \"" << F.getName() << "\" \n";
-      callInstVisitor.visit(F);
+      instVisitor.visit(F);
 
-      genKillVisitor.setMappedInstructions(callInstVisitor.getMappedInstructions());
-      genKillVisitor.setValueModifications(callInstVisitor.getValueModifications());
+      genKillVisitor.setMappedInstructions(instVisitor.getMappedInstructions());
+      genKillVisitor.setValueModifications(instVisitor.getValueModifications());
       genKillVisitor.visit(F);
 
       auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
       inOutProcessor.setDataDepsMap(dataDepsMap);
-      inOutProcessor.setMappedInstructions(callInstVisitor.getMappedInstructions());
+      inOutProcessor.setMappedInstructions(instVisitor.getMappedInstructions());
 
       do {
         inOutProcessor.processOnce(F);
       } while (inOutProcessor.changesHappened());
 
+      // TODO remove after H2
       inOutProcessor.print();
       //genKillVisitor.print();
 

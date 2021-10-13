@@ -10,7 +10,7 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
  * An llvm::InstVisitor that collects call instructions and stores them in various
  * data structures.
  */
-class CatCallInstVisitor : public llvm::InstVisitor<CatCallInstVisitor> {
+class CatInstructionVisitor : public llvm::InstVisitor<CatInstructionVisitor> {
 
     std::vector<llvm::Instruction*> mappedInstructions_; // List of all noteworthy instructions
     MAP_TYPE valueModificationMap_; // Maps values to all instructions that modify them
@@ -25,7 +25,7 @@ class CatCallInstVisitor : public llvm::InstVisitor<CatCallInstVisitor> {
         /**
          * Constructor.
          */
-        CatCallInstVisitor() = default;
+        CatInstructionVisitor() = default;
 
         /**
          * Processes instructions.
