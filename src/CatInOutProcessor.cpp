@@ -32,11 +32,10 @@ void CatInOutProcessor::processBasicBlock(llvm::BasicBlock& bb) {
 
 llvm::Instruction* CatInOutProcessor::processInstruction(llvm::Instruction& inst, llvm::Instruction* prevInst) {
     llvm::Instruction* newPrevInst = prevInst;
-    llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(&inst);
-    if (callInst) {
-        newPrevInst = callInst;
+    if (dataDepsMap_->find(&inst) != dataDepsMap_->end()) {
+        newPrevInst = &inst;
 
-        CatDataDependencies& instDeps = dataDepsMap_->at(callInst);
+        CatDataDependencies& instDeps = dataDepsMap_->at(&inst);
         llvm::SmallBitVector prevOutSet = instDeps.outSet;
         if (prevInst != nullptr) {
             instDeps.inSet = dataDepsMap_->at(prevInst).outSet;
@@ -55,7 +54,7 @@ llvm::Instruction* CatInOutProcessor::processInstruction(llvm::Instruction& inst
 }
 
 void CatInOutProcessor::print() {
-    for (llvm::Instruction* callInst : *mappedInstructions_) {
-        printInOutSets(llvm::errs(), callInst, dataDepsMap_->at(callInst), *mappedInstructions_);
+    for (llvm::Instruction* inst : *mappedInstructions_) {
+        printInOutSets(llvm::errs(), inst, dataDepsMap_->at(inst), *mappedInstructions_);
     }
 }
