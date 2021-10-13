@@ -28,17 +28,15 @@ class CatCallInstVisitor : public llvm::InstVisitor<CatCallInstVisitor> {
         CatCallInstVisitor() = default;
 
         /**
-         * Processes call instructions.
+         * Processes instructions.
          *
-         * This function is called once per llvm::CallInst that exists in the IR.
+         * This function is called once per llvm::Instruction that exists in the IR.
          * It will look at the instruction and store it in the data structures
          * appropriately
          *
-         * @param callInst The call instruction to process
+         * @param inst The instruction to process
          */
-        void visitCallInst(llvm::CallInst& callInst);
-
-        void visitReturnInst(llvm::ReturnInst& retInst);
+        void visitInstruction(llvm::Instruction& inst);
 
         /**
          * Gets all processed instructions.
