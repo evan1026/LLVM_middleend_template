@@ -16,7 +16,7 @@ jobs:
         run: sudo apt update -m && sudo apt install cmake clang-12 libllvm12 llvm-12-dev
         shell: bash
       - name: Run CMake
-        run: CC=clang CXX=clang++ cd "${{ github.workspace }}/../../_temp" && cmake -G "Unix Makefiles" "${{ github.workspace }}"
+        run: cd "${{ github.workspace }}/../../_temp" && CC=clang CXX=clang++ cmake -G "Unix Makefiles" "${{ github.workspace }}"
       - name: Compile Code
         run: cd "${{ github.workspace }}/../../_temp" && make
   docs:
