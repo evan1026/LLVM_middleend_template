@@ -17,6 +17,8 @@ jobs:
         shell: bash
       - name: Run CMake
         run: cd "${{ github.workspace }}/../../_temp" && cmake -G "Unix Makefiles" "${{ github.workspace }}"
+      - name: Compile Code
+        run: cd "${{ github.workspace }}/../../_temp" && make
   docs:
     runs-on: ubuntu-latest
     steps:
