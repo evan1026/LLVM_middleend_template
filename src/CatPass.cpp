@@ -34,6 +34,8 @@ namespace {
       for (auto& inst : instVisitor.getMappedInstructions()) {
         llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);
         bool phiFound = false;
+        bool nonConstFound = false;
+        std::vector<llvm::Value*> foundValues;
         if (callInst) {
           const CatFunction* func = CatFunction::get(callInst->getCalledFunction()->getName().str());
           if (func) {
@@ -58,10 +60,14 @@ namespace {
                         llvm::errs() << "        This instruction made the operand and is a constant (CAT_new)!\n";
                         replaceValue = callValue->getArgOperand(0);
                       }
-                    } else if (func2->isModification() && !func2->isCalculation()) {
-                      if (callValue->getArgOperand(0) == catVar) {
-                        llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
-                        replaceValue = callValue->getArgOperand(1);
+                    } else if (func2->isModification()) {
+                      if (func2->isCalculation()) {
+                        nonConstFound = true;
+                      } else {
+                        if (callValue->getArgOperand(0) == catVar) {
+                          llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
+                          replaceValue = callValue->getArgOperand(1);
+                        }
                       }
                     }
                   }
@@ -74,16 +80,20 @@ namespace {
                 }
 
                 if (replaceValue != nullptr) {
-                  replacements.insert({callInst, replaceValue});
+                  foundValues.push_back(replaceValue);
                 }
                 index = dataDeps.inSet.find_next(index);
               }
 
-              if (phiFound) {
-                auto replacementLoc = replacements.find(callInst);
-                if (replacementLoc != replacements.end()) {
-                  replacements.erase(replacementLoc);
+              bool allEqual = true;
+              for (std::size_t i = 0; i + 1 < foundValues.size(); ++i) {
+                if (foundValues[i] != foundValues[i + 1]) {
+                  allEqual = false;
                 }
+              }
+
+              if (!phiFound && !nonConstFound && allEqual && foundValues.size() > 0) {
+                replacements.insert({callInst, foundValues[0]});
               }
             }
           }
@@ -157,7 +167,7 @@ namespace {
                 llvm::PHINode* phiNode = llvm::dyn_cast<llvm::PHINode>(value);
                 if (phiNode) {
                   if (phiNode == callInst->getArgOperand(1) || phiNode == callInst->getArgOperand(2)) {
-                    llvm::errs() << "PHI node exists for this value which means it could be undefined. We won't propagate.\n";
+                    llvm::errs() << "    PHI node exists for this value which means it could be undefined. We won't propagate.\n";
                     phiFound = true;
                   }
                 }
