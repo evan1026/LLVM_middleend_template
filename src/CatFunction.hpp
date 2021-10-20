@@ -29,12 +29,18 @@ class CatFunction {
     std::string name_;
     bool isInitialAssignment_;
     bool isModification_;
+    bool isCalculation_;
 
     /**
      * Constructor. Made private because CAT functions are declared
      * statically at compile time.
      */
-    CatFunction(std::string name, bool isInitialAssignment, bool isModification);
+    CatFunction(std::string name, bool isInitialAssignment, bool isModification, bool isCalculation) :
+        name_(name),
+        isInitialAssignment_(isInitialAssignment),
+        isModification_(isModification),
+        isCalculation_(isCalculation)
+    {}
 
     static CAT_MAP GET_CAT_FUNCTIONS();
     static CAT_MAP CAT_FUNCTIONS;
@@ -75,6 +81,8 @@ class CatFunction {
          * @return `true` if this CatFunction performs a modification, `false` otherwise.
          */
         bool isModification() const { return isModification_; }
+
+        bool isCalculation() const { return isCalculation_; }
 
         /**
          * Output operator for CatFunction objects.

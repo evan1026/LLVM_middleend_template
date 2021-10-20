@@ -43,12 +43,12 @@ class CatInstructionVisitor : public llvm::InstVisitor<CatInstructionVisitor> {
          *
          * @return A vector of instructions that have been processed by the visitor.
          */
-        const auto& getMappedInstructions() const { return mappedInstructions_; }
+        auto& getMappedInstructions() { return mappedInstructions_; }
 
         /**
          * Gets a map from llvm::Value pointers to a list of pointers to the call instructions that modify them.
          *
          * @return The map
          */
-        const MAP_TYPE& getValueModifications() const { return valueModificationMap_; }
+        MAP_TYPE& getValueModifications() { return valueModificationMap_; }
 };
