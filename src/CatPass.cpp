@@ -112,7 +112,8 @@ namespace {
                     if (callValue == callInst->getArgOperand(1)) {
                       arg1Const = callValue->getArgOperand(0);;
                       llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_new)!\n";
-                    } else if (callValue == callInst->getArgOperand(2)) {
+                    }
+                    if (callValue == callInst->getArgOperand(2)) {
                       arg2Const = callValue->getArgOperand(0);
                       llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_new)!\n";
                     }
@@ -120,7 +121,8 @@ namespace {
                     if (callValue->getArgOperand(0) == callInst->getArgOperand(1)) {
                       arg1Const = callValue->getArgOperand(1);
                       llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_set)!\n";
-                    } else if (callValue->getArgOperand(0) == callInst->getArgOperand(2)) {
+                    }
+                    if (callValue->getArgOperand(0) == callInst->getArgOperand(2)) {
                       arg2Const = callValue->getArgOperand(1);
                       llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_set)!\n";
                     }
