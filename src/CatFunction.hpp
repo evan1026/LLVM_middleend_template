@@ -4,6 +4,8 @@
 #include <string>
 #include <ostream>
 
+#include <llvm/IR/Instructions.h>
+
 class CatFunction;
 
 using CAT_MAP = std::unordered_map<std::string, CatFunction>;
@@ -26,20 +28,30 @@ using CAT_MAP = std::unordered_map<std::string, CatFunction>;
  */
 class CatFunction {
 
+    enum class CatFunc {
+        CAT_new,
+        CAT_add,
+        CAT_sub,
+        CAT_get,
+        CAT_set
+    };
+
     std::string name_;
     bool isInitialAssignment_;
     bool isModification_;
     bool isCalculation_;
+    CatFunc func_;
 
     /**
      * Constructor. Made private because CAT functions are declared
      * statically at compile time.
      */
-    CatFunction(std::string name, bool isInitialAssignment, bool isModification, bool isCalculation) :
+    CatFunction(CatFunc func, std::string name, bool isInitialAssignment, bool isModification, bool isCalculation) :
         name_(name),
         isInitialAssignment_(isInitialAssignment),
         isModification_(isModification),
-        isCalculation_(isCalculation)
+        isCalculation_(isCalculation),
+        func_(func)
     {}
 
     static CAT_MAP GET_CAT_FUNCTIONS();
@@ -83,6 +95,8 @@ class CatFunction {
         bool isModification() const { return isModification_; }
 
         bool isCalculation() const { return isCalculation_; }
+
+        llvm::Value* applyOperation(llvm::Value* val1, llvm::Value* val2) const;
 
         /**
          * Output operator for CatFunction objects.

@@ -17,13 +17,18 @@ namespace {
 
     CAT() : FunctionPass(ID) {}
 
+    llvm::Function* catSetFunc;
+
     // This function is invoked once at the initialization phase of the compiler
     // The LLVM IR of functions isn't ready at this point
     bool doInitialization (llvm::Module &M) override {
+      catSetFunc = M.getFunction("CAT_set");
       return false;
     }
 
-    void doConstantPropagation(CatInstructionVisitor& instVisitor, std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+    //TODO create function to check if value in IN set
+
+    std::map<llvm::CallInst*, llvm::Value*> doConstantPropagation(CatInstructionVisitor& instVisitor, std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
       std::map<llvm::CallInst*, llvm::Value*> replacements;
       for (auto& inst : instVisitor.getMappedInstructions()) {
         llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);
@@ -35,38 +40,105 @@ namespace {
               auto catVar = callInst->getArgOperand(0);
               auto dataDeps = dataDepsMap.at(callInst);
 
-              llvm::errs() << "Analysing: " << *callInst << "\n";
+              llvm::errs() << "Analysing for constant propagation: " << *callInst << "\n";
               int index = dataDeps.inSet.find_first();
               while (index != -1) {
                 llvm::Instruction* value = instVisitor.getMappedInstructions()[index];
                 llvm::CallInst* callValue = llvm::cast<llvm::CallInst>(value);
                 llvm::errs() << "    Checking value of: " << *value << "\n";
-                  const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
-                  if (func2) {
-                    if (func2->isInitialAssignment()) {
-                      if (callValue == catVar) {
-                        llvm::errs() << "        This instruction made the operand and is a constant (CAT_new)!\n";
-                        replacements.insert({callInst, callValue->getArgOperand(0)});
-                      }
-                    } else if (func2->isModification() && !func2->isCalculation()) {
-                      if (callValue->getArgOperand(0) == catVar) {
-                        llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
-                        replacements.insert({callInst, callValue->getArgOperand(1)});
-                      }
+                const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
+                if (func2) {
+                  // TODO bug when multiple constants are possible
+                  if (func2->isInitialAssignment()) {
+                    if (callValue == catVar) {
+                      llvm::errs() << "        This instruction made the operand and is a constant (CAT_new)!\n";
+                      replacements.insert({callInst, callValue->getArgOperand(0)});
+                    }
+                  } else if (func2->isModification() && !func2->isCalculation()) {
+                    if (callValue->getArgOperand(0) == catVar) {
+                      llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
+                      replacements.insert({callInst, callValue->getArgOperand(1)});
                     }
                   }
+                }
                 index = dataDeps.inSet.find_next(index);
               }
             }
           }
         }
       }
+      return replacements;
+    }
 
-      for (auto it = replacements.begin(); it != replacements.end(); ++it) {
-        llvm::errs() << "We will replace \"" << *it->first << "\" with \"" << *it->second << "\"\n";
-        it->first->replaceAllUsesWith(it->second);
-        it->first->eraseFromParent();
+    bool isInInSet(llvm::SmallBitVector& inSet, llvm::Instruction* inst, std::vector<llvm::Instruction*>& insts) {
+      for (std::size_t i = 0; i < insts.size(); ++i) {
+        if (insts[i] == inst && inSet.test(i)) {
+          return true;
+        }
       }
+      return false;
+    }
+
+    struct ArgPair {
+      llvm::Value* arg1;
+      llvm::Value* arg2;
+    };
+
+    std::map<llvm::CallInst*, ArgPair> doConstantFolding(CatInstructionVisitor& instVisitor, std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+      std::map<llvm::CallInst*, ArgPair> replacements;
+      for (auto& inst : instVisitor.getMappedInstructions()) {
+        llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);
+        if (callInst) {
+          const CatFunction* func = CatFunction::get(callInst->getCalledFunction()->getName().str());
+          if (func) {
+            if (func->isCalculation()) {
+              // At this point we know we're looking at a CAT instruction and it is a candidate for constant folding
+              auto catVar = callInst->getArgOperand(0);
+              auto dataDeps = dataDepsMap.at(callInst);
+
+              llvm::errs() << "Analysing for constant folding: " << *callInst << "\n";
+
+              llvm::Value* arg1Const = nullptr;
+              llvm::Value* arg2Const = nullptr;
+
+              int index = dataDeps.inSet.find_first();
+              while (index != -1) {
+                llvm::Instruction* value = instVisitor.getMappedInstructions()[index];
+                llvm::CallInst* callValue = llvm::cast<llvm::CallInst>(value);
+                llvm::errs() << "    Checking value of: " << *value << "\n";
+                const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
+                if (func2) {
+                  if (func2->isInitialAssignment()) {
+                    if (callValue == callInst->getArgOperand(1)) {
+                      arg1Const = callValue->getArgOperand(0);;
+                      llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_new)!\n";
+                    } else if (callValue == callInst->getArgOperand(2)) {
+                      arg2Const = callValue->getArgOperand(0);
+                      llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_new)!\n";
+                    }
+                  } else if (func2->isModification() && !func2->isCalculation()) {
+                    if (callValue->getArgOperand(0) == callInst->getArgOperand(1)) {
+                      arg1Const = callValue->getArgOperand(1);
+                      llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_set)!\n";
+                    } else if (callValue->getArgOperand(0) == callInst->getArgOperand(2)) {
+                      arg2Const = callValue->getArgOperand(1);
+                      llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_set)!\n";
+                    }
+                  }
+                }
+                index = dataDeps.inSet.find_next(index);
+              }
+
+              if (arg1Const != nullptr && arg2Const != nullptr) {
+                llvm::errs() << "    This is a constant expression!\n";
+                ArgPair pair{arg1Const, arg2Const};
+                replacements.insert({callInst, pair});
+              }
+            }
+          }
+        }
+      }
+      return replacements;
     }
 
     // This function is invoked once per function compiled
@@ -91,7 +163,26 @@ namespace {
       //inOutProcessor.print();
       //genKillVisitor.print();
 
-      doConstantPropagation(instVisitor, dataDepsMap);
+      auto constantProps = doConstantPropagation(instVisitor, dataDepsMap);
+      auto constantFolds = doConstantFolding(instVisitor, dataDepsMap);
+
+      // TODO don't replace all uses just the one use
+      for (auto it = constantProps.begin(); it != constantProps.end(); ++it) {
+        llvm::errs() << "We will replace \"" << *it->first << "\" with \"" << *it->second << "\"\n";
+        it->first->replaceAllUsesWith(it->second);
+        it->first->eraseFromParent();
+      }
+
+      for (auto it = constantFolds.begin(); it != constantFolds.end(); ++it) {
+        llvm::errs() << "Generating const value for \"" << *it->first << "\" using \"" << *it->second.arg1 << "\" and \"" << *it->second.arg2 << "\"\n";
+        const CatFunction* calcFunc = CatFunction::get(it->first->getCalledFunction()->getName().str());
+        llvm::Value* result = calcFunc->applyOperation(it->second.arg1, it->second.arg2);
+        llvm::errs() << "    New val is " << *result << "\n";
+        llvm::CallInst* newCatSet = llvm::CallInst::Create(catSetFunc, std::vector<llvm::Value*>(std::initializer_list<llvm::Value*>{it->first->getArgOperand(0), result}));
+        newCatSet->insertBefore(it->first);
+        it->first->eraseFromParent();
+        llvm::errs() << "    New cat set: " << *newCatSet << "\n";
+      }
 
       return false;
     }
