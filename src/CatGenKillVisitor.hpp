@@ -8,6 +8,7 @@
 
 #include "CatDataDependencies.hpp"
 #include "CatFunction.hpp"
+#include "llvm/Support/raw_ostream.h"
 
 using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
 

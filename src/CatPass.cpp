@@ -29,9 +29,11 @@ namespace {
     //TODO create function to check if value in IN set
 
     std::map<llvm::CallInst*, llvm::Value*> doConstantPropagation(CatInstructionVisitor& instVisitor, std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+      llvm::errs() << "Doing constant propagation\n";
       std::map<llvm::CallInst*, llvm::Value*> replacements;
       for (auto& inst : instVisitor.getMappedInstructions()) {
         llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);
+        bool phiFound = false;
         if (callInst) {
           const CatFunction* func = CatFunction::get(callInst->getCalledFunction()->getName().str());
           if (func) {
@@ -44,24 +46,44 @@ namespace {
               int index = dataDeps.inSet.find_first();
               while (index != -1) {
                 llvm::Instruction* value = instVisitor.getMappedInstructions()[index];
-                llvm::CallInst* callValue = llvm::cast<llvm::CallInst>(value);
-                llvm::errs() << "    Checking value of: " << *value << "\n";
-                const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
-                if (func2) {
-                  // TODO bug when multiple constants are possible
-                  if (func2->isInitialAssignment()) {
-                    if (callValue == catVar) {
-                      llvm::errs() << "        This instruction made the operand and is a constant (CAT_new)!\n";
-                      replacements.insert({callInst, callValue->getArgOperand(0)});
-                    }
-                  } else if (func2->isModification() && !func2->isCalculation()) {
-                    if (callValue->getArgOperand(0) == catVar) {
-                      llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
-                      replacements.insert({callInst, callValue->getArgOperand(1)});
+                llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
+                llvm::Value* replaceValue = nullptr;
+                if (callValue) {
+                  llvm::errs() << "    Checking value of: " << *value << "\n";
+                  const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
+                  if (func2) {
+                    // TODO bug if multiple constants are possible
+                    if (func2->isInitialAssignment()) {
+                      if (callValue == catVar) {
+                        llvm::errs() << "        This instruction made the operand and is a constant (CAT_new)!\n";
+                        replaceValue = callValue->getArgOperand(0);
+                      }
+                    } else if (func2->isModification() && !func2->isCalculation()) {
+                      if (callValue->getArgOperand(0) == catVar) {
+                        llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
+                        replaceValue = callValue->getArgOperand(1);
+                      }
                     }
                   }
                 }
+
+                llvm::PHINode* phi = llvm::dyn_cast<llvm::PHINode>(value);
+                if (phi && phi == catVar) {
+                  llvm::errs() << "PHI node exists for this value which means it could be undefined. We won't propagate.\n";
+                  phiFound = true;
+                }
+
+                if (replaceValue != nullptr) {
+                  replacements.insert({callInst, replaceValue});
+                }
                 index = dataDeps.inSet.find_next(index);
+              }
+
+              if (phiFound) {
+                auto replacementLoc = replacements.find(callInst);
+                if (replacementLoc != replacements.end()) {
+                  replacements.erase(replacementLoc);
+                }
               }
             }
           }
@@ -85,9 +107,11 @@ namespace {
     };
 
     std::map<llvm::CallInst*, ArgPair> doConstantFolding(CatInstructionVisitor& instVisitor, std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+      llvm::errs() << "Doing constant folding\n";
       std::map<llvm::CallInst*, ArgPair> replacements;
       for (auto& inst : instVisitor.getMappedInstructions()) {
         llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);
+        bool phiFound = false;
         if (callInst) {
           const CatFunction* func = CatFunction::get(callInst->getCalledFunction()->getName().str());
           if (func) {
@@ -103,34 +127,45 @@ namespace {
               int index = dataDeps.inSet.find_first();
               while (index != -1) {
                 llvm::Instruction* value = instVisitor.getMappedInstructions()[index];
-                llvm::CallInst* callValue = llvm::cast<llvm::CallInst>(value);
-                llvm::errs() << "    Checking value of: " << *value << "\n";
-                const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
-                if (func2) {
-                  if (func2->isInitialAssignment()) {
-                    if (callValue == callInst->getArgOperand(1)) {
-                      arg1Const = callValue->getArgOperand(0);;
-                      llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_new)!\n";
-                    }
-                    if (callValue == callInst->getArgOperand(2)) {
-                      arg2Const = callValue->getArgOperand(0);
-                      llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_new)!\n";
-                    }
-                  } else if (func2->isModification() && !func2->isCalculation()) {
-                    if (callValue->getArgOperand(0) == callInst->getArgOperand(1)) {
-                      arg1Const = callValue->getArgOperand(1);
-                      llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_set)!\n";
-                    }
-                    if (callValue->getArgOperand(0) == callInst->getArgOperand(2)) {
-                      arg2Const = callValue->getArgOperand(1);
-                      llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_set)!\n";
+                llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
+                if (callValue) {
+                  llvm::errs() << "    Checking value of: " << *value << "\n";
+                  const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
+                  if (func2) {
+                    if (func2->isInitialAssignment()) {
+                      if (callValue == callInst->getArgOperand(1)) {
+                        arg1Const = callValue->getArgOperand(0);;
+                        llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_new)!\n";
+                      }
+                      if (callValue == callInst->getArgOperand(2)) {
+                        arg2Const = callValue->getArgOperand(0);
+                        llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_new)!\n";
+                      }
+                    } else if (func2->isModification() && !func2->isCalculation()) {
+                      if (callValue->getArgOperand(0) == callInst->getArgOperand(1)) {
+                        arg1Const = callValue->getArgOperand(1);
+                        llvm::errs() << "        This instruction made operand 1 and is a constant (CAT_set)!\n";
+                      }
+                      if (callValue->getArgOperand(0) == callInst->getArgOperand(2)) {
+                        arg2Const = callValue->getArgOperand(1);
+                        llvm::errs() << "        This instruction made operand 2 and is a constant (CAT_set)!\n";
+                      }
                     }
                   }
                 }
+
+                llvm::PHINode* phiNode = llvm::dyn_cast<llvm::PHINode>(value);
+                if (phiNode) {
+                  if (phiNode == callInst->getArgOperand(1) || phiNode == callInst->getArgOperand(2)) {
+                    llvm::errs() << "PHI node exists for this value which means it could be undefined. We won't propagate.\n";
+                    phiFound = true;
+                  }
+                }
+
                 index = dataDeps.inSet.find_next(index);
               }
 
-              if (arg1Const != nullptr && arg2Const != nullptr) {
+              if (arg1Const != nullptr && arg2Const != nullptr && !phiFound) {
                 llvm::errs() << "    This is a constant expression!\n";
                 ArgPair pair{arg1Const, arg2Const};
                 replacements.insert({callInst, pair});
@@ -155,11 +190,13 @@ namespace {
       genKillVisitor.setMappedInstructions(instVisitor.getMappedInstructions());
       genKillVisitor.setValueModifications(instVisitor.getValueModifications());
       genKillVisitor.visit(F);
+      llvm::errs() << "Gen/Kill sets complete\n";
 
       auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
       inOutProcessor.setDataDepsMap(dataDepsMap);
       inOutProcessor.setMappedInstructions(instVisitor.getMappedInstructions());
       inOutProcessor.process(F);
+      llvm::errs() << "In/Out sets complete\n";
 
       //inOutProcessor.print();
       //genKillVisitor.print();

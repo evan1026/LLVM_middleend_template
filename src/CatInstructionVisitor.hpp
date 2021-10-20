@@ -18,7 +18,7 @@ class CatInstructionVisitor : public llvm::InstVisitor<CatInstructionVisitor> {
     /**
      * Adds the call instruction to the value modification map for the given value.
      */
-    void addModification(llvm::Value*, llvm::CallInst*);
+    void addModification(llvm::Value*, llvm::Instruction*);
 
     public:
 

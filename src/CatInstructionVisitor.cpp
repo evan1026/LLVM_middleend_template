@@ -1,8 +1,8 @@
 #include "CatInstructionVisitor.hpp"
 #include "CatFunction.hpp"
 
-void CatInstructionVisitor::addModification(llvm::Value* value, llvm::CallInst* callInst) {
-    valueModificationMap_[value].insert(callInst);  // operator[] will default construct vector if it's not there
+void CatInstructionVisitor::addModification(llvm::Value* value, llvm::Instruction* inst) {
+    valueModificationMap_[value].insert(inst);  // operator[] will default construct vector if it's not there
 }
 
 void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
@@ -18,6 +18,16 @@ void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
                 } else if (callInst->getArgOperand(0)) {
                     addModification(callInst->getArgOperand(0), callInst);
                 }
+            }
+        }
+    }
+
+    llvm::PHINode* phiNode = llvm::dyn_cast<llvm::PHINode>(&inst);
+    if (phiNode) {
+        for (auto& op : phiNode->incoming_values()) {
+            llvm::UndefValue* undefVal = llvm::UndefValue::get(op->getType());
+            if (undefVal == &*op) {
+                addModification(phiNode, phiNode);
             }
         }
     }

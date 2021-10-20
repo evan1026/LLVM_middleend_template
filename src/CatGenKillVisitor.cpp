@@ -40,6 +40,20 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
                 }
             }
         }
+    } else if (llvm::isa<llvm::PHINode>(inst)) {
+        llvm::PHINode& phiNode = llvm::cast<llvm::PHINode>(inst);
+        for (size_t i = 0; i < mappedInstructions_->size(); ++i) {
+            auto& thisInst = *(*mappedInstructions_)[i];
+            if (&thisInst == &phiNode) {  // LLVM doesn't define == operators but each instruction is only at one address so we do pointer comparison
+                genSet.resize(i + 1);
+                genSet.set(i);
+            } else if (valueModificationMap_->find(&phiNode) != valueModificationMap_->end()) {
+                auto& otherFuncs = valueModificationMap_->at(&phiNode);
+                if (otherFuncs.find(&thisInst) != otherFuncs.end()) {
+                    killSet.set(i);
+                }
+            }
+        }
     }
 
     genKillMap_.emplace(std::piecewise_construct,
