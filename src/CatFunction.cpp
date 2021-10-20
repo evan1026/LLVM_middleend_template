@@ -35,14 +35,16 @@ std::ostream& operator<<(std::ostream& os, const CatFunction& catFunc) {
     return os;
 }
 
-static int64_t getConstantValue(llvm::Value* val) {
-    llvm::ConstantInt* constInt = llvm::cast<llvm::ConstantInt>(val);
-    return constInt->getSExtValue();
-}
-
 llvm::Value* CatFunction::applyOperation(llvm::Value* val1, llvm::Value* val2) const {
-    int64_t intVal1 = getConstantValue(val1);
-    int64_t intVal2 = getConstantValue(val2);
+    llvm::ConstantInt* constVal1 = llvm::dyn_cast<llvm::ConstantInt>(val1);
+    llvm::ConstantInt* constVal2 = llvm::dyn_cast<llvm::ConstantInt>(val2);
+
+    if (!constVal1 || !constVal2) {
+        return nullptr;
+    }
+
+    int64_t intVal1 = constVal1->getSExtValue();
+    int64_t intVal2 = constVal2->getSExtValue();
     int64_t res;
 
     switch (func_) {

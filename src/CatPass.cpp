@@ -93,7 +93,6 @@ namespace {
           if (func) {
             if (func->isCalculation()) {
               // At this point we know we're looking at a CAT instruction and it is a candidate for constant folding
-              auto catVar = callInst->getArgOperand(0);
               auto dataDeps = dataDepsMap.at(callInst);
 
               llvm::errs() << "Analysing for constant folding: " << *callInst << "\n";
@@ -168,25 +167,32 @@ namespace {
       auto constantProps = doConstantPropagation(instVisitor, dataDepsMap);
       auto constantFolds = doConstantFolding(instVisitor, dataDepsMap);
 
-      // TODO don't replace all uses just the one use
+      bool modification = false;
+
       for (auto it = constantProps.begin(); it != constantProps.end(); ++it) {
         llvm::errs() << "We will replace \"" << *it->first << "\" with \"" << *it->second << "\"\n";
         it->first->replaceAllUsesWith(it->second);
         it->first->eraseFromParent();
+        modification = true;
       }
 
       for (auto it = constantFolds.begin(); it != constantFolds.end(); ++it) {
         llvm::errs() << "Generating const value for \"" << *it->first << "\" using \"" << *it->second.arg1 << "\" and \"" << *it->second.arg2 << "\"\n";
         const CatFunction* calcFunc = CatFunction::get(it->first->getCalledFunction()->getName().str());
         llvm::Value* result = calcFunc->applyOperation(it->second.arg1, it->second.arg2);
-        llvm::errs() << "    New val is " << *result << "\n";
-        llvm::CallInst* newCatSet = llvm::CallInst::Create(catSetFunc, std::vector<llvm::Value*>(std::initializer_list<llvm::Value*>{it->first->getArgOperand(0), result}));
-        newCatSet->insertBefore(it->first);
-        it->first->eraseFromParent();
-        llvm::errs() << "    New cat set: " << *newCatSet << "\n";
+        if (result) {
+          llvm::errs() << "    New val is " << *result << "\n";
+          llvm::CallInst* newCatSet = llvm::CallInst::Create(catSetFunc, std::vector<llvm::Value*>(std::initializer_list<llvm::Value*>{it->first->getArgOperand(0), result}));
+          newCatSet->insertBefore(it->first);
+          it->first->eraseFromParent();
+          llvm::errs() << "    New cat set: " << *newCatSet << "\n";
+          modification = true;
+        } else {
+          llvm::errs() << "    Somthing went wrong with folding (probably the values weren't actually constants). Continuing...\n";
+        }
       }
 
-      return false;
+      return modification;
     }
 
     void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {
