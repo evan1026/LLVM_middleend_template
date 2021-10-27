@@ -10,6 +10,6 @@ class CatConstantPropagationProcessor {
     std::map<llvm::CallInst*, llvm::Value*> replacements;
 
     public:
-        void calculateConstantPropagations(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap);
-        bool doReplacements(llvm::Function* catSetFunc);
+        void calculate(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap);
+        bool execute(llvm::Function* catSetFunc);
 };

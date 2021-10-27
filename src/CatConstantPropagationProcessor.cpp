@@ -3,7 +3,7 @@
 #include "CatConstantPropagationProcessor.hpp"
 #include "CatFunction.hpp"
 
-void CatConstantPropagationProcessor::calculateConstantPropagations(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
     llvm::errs() << "Doing constant propagation\n";
 
     for (auto& inst : instructions) {
@@ -75,7 +75,7 @@ void CatConstantPropagationProcessor::calculateConstantPropagations(std::vector<
     }
 }
 
-bool CatConstantPropagationProcessor::doReplacements(llvm::Function* catSetFunc) {
+bool CatConstantPropagationProcessor::execute(llvm::Function* catSetFunc) {
     bool modification = false;
     for (auto it = replacements.begin(); it != replacements.end(); ++it) {
         llvm::errs() << "We will replace \"" << *it->first << "\" with \"" << *it->second << "\"\n";
