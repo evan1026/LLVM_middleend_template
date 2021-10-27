@@ -28,15 +28,6 @@ namespace {
       return false;
     }
 
-    bool isInInSet(llvm::SmallBitVector& inSet, llvm::Instruction* inst, std::vector<llvm::Instruction*>& insts) {
-      for (std::size_t i = 0; i < insts.size(); ++i) {
-        if (insts[i] == inst && inSet.test(i)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
     void populateDataDepsMap(std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, const std::vector<llvm::Instruction*> instructions) {
       for (auto it = dataDepsMap.begin(); it != dataDepsMap.end(); ++it) {
         it->second.generateInstructionSets(instructions);
