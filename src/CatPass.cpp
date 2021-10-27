@@ -9,6 +9,7 @@
 #include "CatGenKillVisitor.hpp"
 #include "CatInOutProcessor.hpp"
 #include "DataStructureOutput.hpp"
+#include "CatConstantPropagationProcessor.hpp"
 
 namespace {
   struct CAT : public llvm::FunctionPass {
@@ -24,82 +25,6 @@ namespace {
     bool doInitialization (llvm::Module &M) override {
       catSetFunc = M.getFunction("CAT_set");
       return false;
-    }
-
-    //TODO create function to check if value in IN set
-
-    std::map<llvm::CallInst*, llvm::Value*> doConstantPropagation(CatInstructionVisitor& instVisitor, std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
-      llvm::errs() << "Doing constant propagation\n";
-      std::map<llvm::CallInst*, llvm::Value*> replacements;
-      for (auto& inst : instVisitor.getMappedInstructions()) {
-        llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);
-        bool phiFound = false;
-        bool nonConstFound = false;
-        std::vector<llvm::Value*> foundValues;
-        if (callInst) {
-          const CatFunction* func = CatFunction::get(callInst->getCalledFunction()->getName().str());
-          if (func) {
-            if (!func->isModification()) {
-              // At this point we know we're looking at a CAT instruction and it is a candidate for constant propagation
-              auto catVar = callInst->getArgOperand(0);
-              auto dataDeps = dataDepsMap.at(callInst);
-
-              llvm::errs() << "Analysing for constant propagation: " << *callInst << "\n";
-              int index = dataDeps.inSet.find_first();
-              while (index != -1) {
-                llvm::Instruction* value = instVisitor.getMappedInstructions()[index];
-                llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
-                llvm::Value* replaceValue = nullptr;
-                if (callValue) {
-                  llvm::errs() << "    Checking value of: " << *value << "\n";
-                  const CatFunction* func2 = CatFunction::get(callValue->getCalledFunction()->getName().str());
-                  if (func2) {
-                    // TODO bug if multiple constants are possible
-                    if (func2->isInitialAssignment()) {
-                      if (callValue == catVar) {
-                        llvm::errs() << "        This instruction made the operand and is a constant (CAT_new)!\n";
-                        replaceValue = callValue->getArgOperand(0);
-                      }
-                    } else if (func2->isModification()) {
-                      if (func2->isCalculation()) {
-                        nonConstFound = true;
-                      } else {
-                        if (callValue->getArgOperand(0) == catVar) {
-                          llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
-                          replaceValue = callValue->getArgOperand(1);
-                        }
-                      }
-                    }
-                  }
-                }
-
-                llvm::PHINode* phi = llvm::dyn_cast<llvm::PHINode>(value);
-                if (phi && phi == catVar) {
-                  llvm::errs() << "PHI node exists for this value which means it could be undefined. We won't propagate.\n";
-                  phiFound = true;
-                }
-
-                if (replaceValue != nullptr) {
-                  foundValues.push_back(replaceValue);
-                }
-                index = dataDeps.inSet.find_next(index);
-              }
-
-              bool allEqual = true;
-              for (std::size_t i = 0; i + 1 < foundValues.size(); ++i) {
-                if (foundValues[i] != foundValues[i + 1]) {
-                  allEqual = false;
-                }
-              }
-
-              if (!phiFound && !nonConstFound && allEqual && foundValues.size() > 0) {
-                replacements.insert({callInst, foundValues[0]});
-              }
-            }
-          }
-        }
-      }
-      return replacements;
     }
 
     bool isInInSet(llvm::SmallBitVector& inSet, llvm::Instruction* inst, std::vector<llvm::Instruction*>& insts) {
@@ -199,37 +124,34 @@ namespace {
       CatInstructionVisitor instVisitor;
       CatGenKillVisitor genKillVisitor;
       CatInOutProcessor inOutProcessor;
+      CatConstantPropagationProcessor constPropProcessor;
 
       llvm::errs() << "Function \"" << F.getName() << "\" \n";
       instVisitor.visit(F);
 
-      genKillVisitor.setMappedInstructions(instVisitor.getMappedInstructions());
+      std::vector<llvm::Instruction*>& instructions = instVisitor.getMappedInstructions();
+      genKillVisitor.setMappedInstructions(instructions);
       genKillVisitor.setValueModifications(instVisitor.getValueModifications());
       genKillVisitor.visit(F);
       llvm::errs() << "Gen/Kill sets complete\n";
 
       auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
       inOutProcessor.setDataDepsMap(dataDepsMap);
-      inOutProcessor.setMappedInstructions(instVisitor.getMappedInstructions());
+      inOutProcessor.setMappedInstructions(instructions);
       inOutProcessor.process(F);
       llvm::errs() << "In/Out sets complete\n";
 
-      populateDataDepsMap(dataDepsMap, instVisitor.getMappedInstructions());
+      populateDataDepsMap(dataDepsMap, instructions);
 
       //inOutProcessor.print();
       //genKillVisitor.print();
 
-      auto constantProps = doConstantPropagation(instVisitor, dataDepsMap);
+      constPropProcessor.calculateConstantPropagations(instructions, dataDepsMap);
       auto constantFolds = doConstantFolding(instVisitor, dataDepsMap);
 
       bool modification = false;
 
-      for (auto it = constantProps.begin(); it != constantProps.end(); ++it) {
-        llvm::errs() << "We will replace \"" << *it->first << "\" with \"" << *it->second << "\"\n";
-        it->first->replaceAllUsesWith(it->second);
-        it->first->eraseFromParent();
-        modification = true;
-      }
+      modification |= constPropProcessor.doReplacements(catSetFunc);
 
       for (auto it = constantFolds.begin(); it != constantFolds.end(); ++it) {
         llvm::errs() << "Generating const value for \"" << *it->first << "\" using \"" << *it->second.arg1 << "\" and \"" << *it->second.arg2 << "\"\n";
