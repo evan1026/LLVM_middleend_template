@@ -187,6 +187,12 @@ namespace {
       return replacements;
     }
 
+    void populateDataDepsMap(std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, const std::vector<llvm::Instruction*> instructions) {
+      for (auto it = dataDepsMap.begin(); it != dataDepsMap.end(); ++it) {
+        it->second.generateInstructionSets(instructions);
+      }
+    }
+
     // This function is invoked once per function compiled
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
     bool runOnFunction (llvm::Function &F) override {
@@ -207,6 +213,8 @@ namespace {
       inOutProcessor.setMappedInstructions(instVisitor.getMappedInstructions());
       inOutProcessor.process(F);
       llvm::errs() << "In/Out sets complete\n";
+
+      populateDataDepsMap(dataDepsMap, instVisitor.getMappedInstructions());
 
       //inOutProcessor.print();
       //genKillVisitor.print();

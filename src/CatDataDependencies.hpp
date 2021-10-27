@@ -1,6 +1,8 @@
 #pragma once
 
 #include <llvm/ADT/SmallBitVector.h>
+#include <llvm/IR/Instructions.h>
+#include <unordered_set>
 
 /**
  * Data dependency information for the CAT language. Currently contains
@@ -32,6 +34,12 @@ struct CatDataDependencies {
      */
     llvm::SmallBitVector outSet;
 
+    std::unordered_set<llvm::Instruction*> instGenSet;
+    std::unordered_set<llvm::Instruction*> instKillSet;
+    std::unordered_set<llvm::Instruction*> instInSet;
+    std::unordered_set<llvm::Instruction*> instOutSet;
+
+
     /**
      * Constructor.
      *
@@ -42,7 +50,11 @@ struct CatDataDependencies {
         genSet(genSet_),
         killSet(killSet_),
         inSet(),
-        outSet()
+        outSet(),
+        instGenSet(),
+        instKillSet(),
+        instInSet(),
+        instOutSet()
     {}
 
     /**
@@ -52,6 +64,12 @@ struct CatDataDependencies {
         genSet(),
         killSet(),
         inSet(),
-        outSet()
+        outSet(),
+        instGenSet(),
+        instKillSet(),
+        instInSet(),
+        instOutSet()
     {}
+
+    void generateInstructionSets(const std::vector<llvm::Instruction*> instructions);
 };
