@@ -15,5 +15,5 @@ class CatConstantFoldingProcessor {
 
     public:
         void calculate(std::vector<llvm::Instruction*> instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap);
-        bool execute(llvm::Function* catSetFunc);
+        bool execute();
 };

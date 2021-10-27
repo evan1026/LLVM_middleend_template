@@ -29,6 +29,12 @@ const CatFunction* CatFunction::get(const std::string& name) {
     }
 }
 
+void CatFunction::init(llvm::Module& mod) {
+    for (auto it = CAT_FUNCTIONS.begin(); it != CAT_FUNCTIONS.end(); ++it) {
+      it->second.function_ = mod.getFunction(it->first);
+    }
+}
+
 std::ostream& operator<<(std::ostream& os, const CatFunction& catFunc) {
     os << "CatFunc[name=\"" << catFunc.name_ << "\", isInitialAssignment=" << catFunc.isInitialAssignment_
         << ", isModification=" << catFunc.isModification_ << ", isCalculation=" << catFunc.isCalculation_ << "]";

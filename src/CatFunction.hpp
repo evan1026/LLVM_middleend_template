@@ -5,6 +5,7 @@
 #include <ostream>
 
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/Module.h>
 
 class CatFunction;
 
@@ -41,6 +42,7 @@ class CatFunction {
     bool isModification_;
     bool isCalculation_;
     CatFunc func_;
+    llvm::Function* function_;
 
     /**
      * Constructor. Made private because CAT functions are declared
@@ -51,7 +53,8 @@ class CatFunction {
         isInitialAssignment_(isInitialAssignment),
         isModification_(isModification),
         isCalculation_(isCalculation),
-        func_(func)
+        func_(func),
+        function_(nullptr)
     {}
 
     static CAT_MAP GET_CAT_FUNCTIONS();
@@ -66,6 +69,8 @@ class CatFunction {
          * @return A CatFunction pointer pointing to the object if it was found, or `nullptr` if not
          */
         static const CatFunction* get(const std::string& name);
+
+        static void init(llvm::Module& mod);
 
         /**
          * Gets the name of the CatFunction.
@@ -95,6 +100,8 @@ class CatFunction {
         bool isModification() const { return isModification_; }
 
         bool isCalculation() const { return isCalculation_; }
+
+        llvm::Function* getFunc() const { return function_; }
 
         llvm::Value* applyOperation(llvm::Value* val1, llvm::Value* val2) const;
 

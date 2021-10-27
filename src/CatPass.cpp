@@ -24,7 +24,7 @@ namespace {
     // This function is invoked once at the initialization phase of the compiler
     // The LLVM IR of functions isn't ready at this point
     bool doInitialization (llvm::Module &M) override {
-      catSetFunc = M.getFunction("CAT_set");
+      CatFunction::init(M);
       return false;
     }
 
@@ -76,8 +76,8 @@ namespace {
       constFoldProcessor.calculate(instructions, dataDepsMap);
 
       bool modification = false;
-      modification |= constPropProcessor.execute(catSetFunc);
-      modification |= constFoldProcessor.execute(catSetFunc);
+      modification |= constPropProcessor.execute();
+      modification |= constFoldProcessor.execute();
 
       return modification;
     }

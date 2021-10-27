@@ -75,7 +75,7 @@ void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>&
     }
 }
 
-bool CatConstantPropagationProcessor::execute(llvm::Function* catSetFunc) {
+bool CatConstantPropagationProcessor::execute() {
     bool modification = false;
     for (auto it = replacements.begin(); it != replacements.end(); ++it) {
         llvm::errs() << "We will replace \"" << *it->first << "\" with \"" << *it->second << "\"\n";

@@ -72,7 +72,8 @@ void CatConstantFoldingProcessor::calculate(std::vector<llvm::Instruction*> inst
     }
 }
 
-bool CatConstantFoldingProcessor::execute(llvm::Function* catSetFunc) {
+bool CatConstantFoldingProcessor::execute() {
+    llvm::Function* catSetFunc = CatFunction::get("CAT_set")->getFunc();
     bool modification = false;
     for (auto it = replacements.begin(); it != replacements.end(); ++it) {
         llvm::errs() << "Generating const value for \"" << *it->first << "\" using \"" << *it->second.arg1 << "\" and \"" << *it->second.arg2 << "\"\n";
