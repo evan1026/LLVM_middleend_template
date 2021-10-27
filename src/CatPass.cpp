@@ -6,8 +6,7 @@
 #include "llvm/IR/InstIterator.h"
 
 #include "CatInstructionVisitor.hpp"
-#include "CatGenKillVisitor.hpp"
-#include "CatInOutProcessor.hpp"
+#include "CatDataDependencyProcessor.hpp"
 #include "DataStructureOutput.hpp"
 #include "CatConstantPropagationProcessor.hpp"
 #include "CatConstantFoldingProcessor.hpp"
@@ -28,18 +27,12 @@ namespace {
       return false;
     }
 
-    void populateDataDepsMap(std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, const std::vector<llvm::Instruction*> instructions) {
-      for (auto it = dataDepsMap.begin(); it != dataDepsMap.end(); ++it) {
-        it->second.generateInstructionSets(instructions);
-      }
-    }
 
     // This function is invoked once per function compiled
     // The LLVM IR of the input functions is ready and it can be analyzed and/or transformed
     bool runOnFunction (llvm::Function &F) override {
       CatInstructionVisitor instVisitor;
-      CatGenKillVisitor genKillVisitor;
-      CatInOutProcessor inOutProcessor;
+      CatDataDependencyProcessor catDepsProcessor;
       CatConstantPropagationProcessor constPropProcessor;
       CatConstantFoldingProcessor constFoldProcessor;
 
@@ -47,21 +40,7 @@ namespace {
       instVisitor.visit(F);
 
       std::vector<llvm::Instruction*>& instructions = instVisitor.getMappedInstructions();
-      genKillVisitor.setMappedInstructions(instructions);
-      genKillVisitor.setValueModifications(instVisitor.getValueModifications());
-      genKillVisitor.visit(F);
-      llvm::errs() << "Gen/Kill sets complete\n";
-
-      auto dataDepsMap = genKillVisitor.getGenKillMap(); // Make a copy bc we want to modify it a lot
-      inOutProcessor.setDataDepsMap(dataDepsMap);
-      inOutProcessor.setMappedInstructions(instructions);
-      inOutProcessor.process(F);
-      llvm::errs() << "In/Out sets complete\n";
-
-      populateDataDepsMap(dataDepsMap, instructions);
-
-      //inOutProcessor.print();
-      //genKillVisitor.print();
+      auto dataDepsMap = catDepsProcessor.getDataDependencies(F, instVisitor);
 
       constPropProcessor.calculate(instructions, dataDepsMap);
       constFoldProcessor.calculate(instructions, dataDepsMap);
