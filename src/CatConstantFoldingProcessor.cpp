@@ -20,9 +20,7 @@ void CatConstantFoldingProcessor::calculate(std::vector<llvm::Instruction*> inst
                     llvm::Value* arg1Const = nullptr;
                     llvm::Value* arg2Const = nullptr;
 
-                    int index = dataDeps.inSet.find_first();
-                    while (index != -1) {
-                        llvm::Instruction* value = instructions[index];
+                    for (llvm::Instruction* value : dataDeps.instInSet) {
                         llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
                         if (callValue) {
                             llvm::errs() << "    Checking value of: " << *value << "\n";
@@ -57,8 +55,6 @@ void CatConstantFoldingProcessor::calculate(std::vector<llvm::Instruction*> inst
                                 phiFound = true;
                             }
                         }
-
-                        index = dataDeps.inSet.find_next(index);
                     }
 
                     if (arg1Const != nullptr && arg2Const != nullptr && !phiFound) {

@@ -20,9 +20,7 @@ void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>&
                     auto dataDeps = dataDepsMap.at(callInst);
 
                     llvm::errs() << "Analysing for constant propagation: " << *callInst << "\n";
-                    int index = dataDeps.inSet.find_first();
-                    while (index != -1) {
-                        llvm::Instruction* value = instructions[index];
+                    for (llvm::Instruction* value : dataDeps.instInSet) {
                         llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
                         llvm::Value* replaceValue = nullptr;
                         if (callValue) {
@@ -56,7 +54,6 @@ void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>&
                         if (replaceValue != nullptr) {
                             foundValues.push_back(replaceValue);
                         }
-                        index = dataDeps.inSet.find_next(index);
                     }
 
                     bool allEqual = true;
