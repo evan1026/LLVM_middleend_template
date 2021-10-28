@@ -50,7 +50,7 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
         llvm::PHINode* phiNode = llvm::dyn_cast<llvm::PHINode>(value);
         if (phiNode) {
             if (phiNode == callInst->getArgOperand(1) || phiNode == callInst->getArgOperand(2)) {
-                llvm::errs() << "    PHI node exists for this value which means it could be undefined. We won't propagate.\n";
+                llvm::errs() << "    PHI node exists for this value " << *phiNode << "\n";
                 phiFound = true;
             }
         }

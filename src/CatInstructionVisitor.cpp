@@ -24,12 +24,7 @@ void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
 
     llvm::PHINode* phiNode = llvm::dyn_cast<llvm::PHINode>(&inst);
     if (phiNode) {
-        for (auto& op : phiNode->incoming_values()) {
-            llvm::UndefValue* undefVal = llvm::UndefValue::get(op->getType());
-            if (undefVal == &*op) {
-                addModification(phiNode, phiNode);
-            }
-        }
+        addModification(phiNode, phiNode);
     }
 }
 
