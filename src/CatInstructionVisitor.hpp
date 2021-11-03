@@ -14,7 +14,7 @@ class CatInstructionVisitor {
 
     std::vector<llvm::Value*> mappedInstructions_; // List of all noteworthy instructions
     MAP_TYPE valueModificationMap_; // Maps values to all instructions that modify them
-    std::unordered_set<llvm::Instruction*> escapedInstructions_;
+    std::unordered_set<llvm::Value*> escapedInstructions_;
 
     /**
      * Adds the call instruction to the value modification map for the given value.

@@ -49,5 +49,10 @@ void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
     if (phiNode) {
         addModification(phiNode, phiNode);
     }
+
+    llvm::StoreInst* storeInst = llvm::dyn_cast<llvm::StoreInst>(&inst);
+    if (storeInst) {
+        escapedInstructions_.insert(storeInst->getValueOperand());
+    }
 }
 

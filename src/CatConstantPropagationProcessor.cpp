@@ -60,7 +60,7 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getPhiNodeReplaceValu
     return out;
 }
 
-void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Instruction*>& escapedVariables) {
+void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Value*>& escapedVariables) {
     // At this point we know we're looking at a CAT instruction and it is a candidate for constant propagation
     auto catVar = callInst->getArgOperand(0);
     auto dataDeps = dataDepsMap.at(callInst);
@@ -100,7 +100,7 @@ void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, 
     }
 }
 
-void CatConstantPropagationProcessor::calculate(std::vector<llvm::Value*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Instruction*>& escapedVariables) {
+void CatConstantPropagationProcessor::calculate(std::vector<llvm::Value*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Value*>& escapedVariables) {
     llvm::errs() << "Doing constant propagation\n";
 
     for (auto& inst : instructions) {
