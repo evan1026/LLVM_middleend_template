@@ -55,7 +55,7 @@ llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const MAP_TYPE& map) {
     return os;
 }
 
-void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::Instruction*>& instructions) {
+void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::Value*>& instructions) {
     llvm::SmallBitVector resizedBitVector = bitVector;
     resizedBitVector.resize(instructions.size());
     for (size_t i = 0; i < instructions.size(); ++i) {
@@ -73,7 +73,7 @@ static void printFooter(llvm::raw_ostream& os) {
     os << "}\n**************************************\n";
 }
 
-void printGenKillSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Instruction*>& instructions) {
+void printGenKillSets(llvm::raw_ostream& os, const llvm::Value* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Value*>& instructions) {
     os << "INSTRUCTION: " << *callInst << "\n";
     printHeader(os, "GEN");
     printBitVector(os, dataDeps.genSet, instructions);
@@ -84,7 +84,7 @@ void printGenKillSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, 
     os << "\n\n\n";
 }
 
-void printInOutSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Instruction*>& instructions) {
+void printInOutSets(llvm::raw_ostream& os, const llvm::Value* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Value*>& instructions) {
     os << "INSTRUCTION: " << *callInst << "\n";
     printHeader(os, "IN");
     printBitVector(os, dataDeps.inSet, instructions);

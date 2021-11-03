@@ -4,7 +4,7 @@
 
 #include <llvm/IR/InstVisitor.h>
 
-using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Value*>>;
 
 /**
  * An llvm::InstVisitor that collects call instructions and stores them in various
@@ -12,14 +12,14 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
  */
 class CatInstructionVisitor : public llvm::InstVisitor<CatInstructionVisitor> {
 
-    std::vector<llvm::Instruction*> mappedInstructions_; // List of all noteworthy instructions
+    std::vector<llvm::Value*> mappedInstructions_; // List of all noteworthy instructions
     MAP_TYPE valueModificationMap_; // Maps values to all instructions that modify them
     std::unordered_set<llvm::Instruction*> escapedInstructions_;
 
     /**
      * Adds the call instruction to the value modification map for the given value.
      */
-    void addModification(llvm::Value*, llvm::Instruction*);
+    void addModification(llvm::Value*, llvm::Value*);
 
     void checkVariableEscape(llvm::CallInst* callInst);
 

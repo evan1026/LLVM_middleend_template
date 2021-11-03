@@ -32,7 +32,7 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
     llvm::Value* arg2Const = nullptr;
     bool phiFound = false;
 
-    for (llvm::Instruction* value : dataDeps.instInSet) {
+    for (llvm::Value* value : dataDeps.instInSet) {
         llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
         if (callValue) {
             llvm::errs() << "    Checking value of: " << *value << "\n";
@@ -63,7 +63,7 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
     }
 }
 
-void CatConstantFoldingProcessor::calculate(std::vector<llvm::Instruction*> instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+void CatConstantFoldingProcessor::calculate(std::vector<llvm::Value*> instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
     llvm::errs() << "Doing constant folding\n";
     for (auto& inst : instructions) {
         llvm::CallInst* callInst = llvm::dyn_cast<llvm::CallInst>(inst);

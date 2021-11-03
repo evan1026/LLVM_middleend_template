@@ -1,7 +1,7 @@
 #include "CatDataDependencyProcessor.hpp"
 
 
-static void populateDataDepsMap(std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, const std::vector<llvm::Instruction*> instructions) {
+static void populateDataDepsMap(std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, const std::vector<llvm::Value*> instructions) {
     for (auto it = dataDepsMap.begin(); it != dataDepsMap.end(); ++it) {
         it->second.generateInstructionSets(instructions);
     }
@@ -11,7 +11,7 @@ const std::map<llvm::Instruction*, CatDataDependencies> CatDataDependencyProcess
     CatGenKillVisitor genKillVisitor;
     CatInOutProcessor inOutProcessor;
 
-    std::vector<llvm::Instruction*>& instructions = instVisitor.getMappedInstructions();
+    std::vector<llvm::Value*>& instructions = instVisitor.getMappedInstructions();
     genKillVisitor.setMappedInstructions(instructions);
     genKillVisitor.setValueModifications(instVisitor.getValueModifications());
     genKillVisitor.visit(func);

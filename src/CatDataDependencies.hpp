@@ -34,10 +34,10 @@ struct CatDataDependencies {
      */
     llvm::SmallBitVector outSet;
 
-    std::unordered_set<llvm::Instruction*> instGenSet;
-    std::unordered_set<llvm::Instruction*> instKillSet;
-    std::unordered_set<llvm::Instruction*> instInSet;
-    std::unordered_set<llvm::Instruction*> instOutSet;
+    std::unordered_set<llvm::Value*> instGenSet;
+    std::unordered_set<llvm::Value*> instKillSet;
+    std::unordered_set<llvm::Value*> instInSet;
+    std::unordered_set<llvm::Value*> instOutSet;
 
 
     /**
@@ -71,5 +71,5 @@ struct CatDataDependencies {
         instOutSet()
     {}
 
-    void generateInstructionSets(const std::vector<llvm::Instruction*> instructions);
+    void generateInstructionSets(const std::vector<llvm::Value*> instructions);
 };

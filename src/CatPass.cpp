@@ -39,7 +39,7 @@ namespace {
       llvm::errs() << "Function \"" << F.getName() << "\" \n";
       instVisitor.visit(F);
 
-      std::vector<llvm::Instruction*>& instructions = instVisitor.getMappedInstructions();
+      std::vector<llvm::Value*>& instructions = instVisitor.getMappedInstructions();
       auto dataDepsMap = catDepsProcessor.getDataDependencies(F, instVisitor);
 
       auto& escapedVariables = instVisitor.getEscapedVars();

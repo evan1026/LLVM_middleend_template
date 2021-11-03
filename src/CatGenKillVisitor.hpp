@@ -10,7 +10,7 @@
 #include "CatFunction.hpp"
 #include "llvm/Support/raw_ostream.h"
 
-using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Value*>>;
 
 /**
  * Visitor class that generates GEN and KILL sets for each
@@ -21,7 +21,7 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
  */
 class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
 
-    const std::vector<llvm::Instruction*>* mappedInstructions_;
+    const std::vector<llvm::Value*>* mappedInstructions_;
     const MAP_TYPE* valueModificationMap_;
 
     // GEN and KILL sets are stored here
@@ -54,7 +54,7 @@ class CatGenKillVisitor : public llvm::InstVisitor<CatGenKillVisitor> {
          *
          * @param mappedInstructions The list of all instructions in this function that we will generate GEN and KILL sets for.
          */
-        void setMappedInstructions(const std::vector<llvm::Instruction*>& mappedInstructions) {
+        void setMappedInstructions(const std::vector<llvm::Value*>& mappedInstructions) {
             mappedInstructions_ = &mappedInstructions;
         }
 

@@ -9,7 +9,7 @@
 
 #include "CatDataDependencies.hpp"
 
-using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Value*>>;
 
 /**
  * Class that generates IN/OUT sets for each instruction that CatInstructionVisitor
@@ -17,7 +17,7 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
  */
 class CatInOutProcessor {
 
-    const std::vector<llvm::Instruction*>* mappedInstructions_;
+    const std::vector<llvm::Value*>* mappedInstructions_;
     std::map<llvm::Instruction*, CatDataDependencies>* dataDepsMap_;
     std::map<llvm::BasicBlock*, CatDataDependencies> bbDataDepsMap_;
 
@@ -62,7 +62,7 @@ class CatInOutProcessor {
          *
          * @param mappedInstructions The list of all call instructions in this function.
          */
-        void setMappedInstructions(const std::vector<llvm::Instruction*>& mappedInstructions) {
+        void setMappedInstructions(const std::vector<llvm::Value*>& mappedInstructions) {
             mappedInstructions_ = &mappedInstructions;
         }
 

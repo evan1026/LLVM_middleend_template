@@ -63,7 +63,10 @@ void CatGenKillVisitor::visitInstruction(llvm::Instruction& inst) {
 }
 
 void CatGenKillVisitor::print() {
-    for (llvm::Instruction* callInst : *mappedInstructions_) {
-        printGenKillSets(llvm::errs(), callInst, genKillMap_.at(callInst), *mappedInstructions_);
+    for (llvm::Value* callInst : *mappedInstructions_) {
+        if (llvm::isa<llvm::Instruction>(callInst)) {
+            llvm::Instruction* actualInst = llvm::cast<llvm::Instruction>(callInst);
+            printGenKillSets(llvm::errs(), actualInst, genKillMap_.at(actualInst), *mappedInstructions_);
+        }
     }
 }

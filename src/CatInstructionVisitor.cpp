@@ -1,7 +1,7 @@
 #include "CatInstructionVisitor.hpp"
 #include "CatFunction.hpp"
 
-void CatInstructionVisitor::addModification(llvm::Value* value, llvm::Instruction* inst) {
+void CatInstructionVisitor::addModification(llvm::Value* value, llvm::Value* inst) {
     valueModificationMap_[value].insert(inst);  // operator[] will default construct vector if it's not there
 }
 

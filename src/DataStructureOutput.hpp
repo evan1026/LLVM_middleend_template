@@ -7,7 +7,7 @@
 
 #include "CatDataDependencies.hpp"
 
-using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
+using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Value*>>;
 
 /**
  * Output operator for a list of instructions.
@@ -16,7 +16,7 @@ using MAP_TYPE = std::map<llvm::Value*, std::unordered_set<llvm::Instruction*>>;
  * @param insts The list of instructions.
  * @return os
  */
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::vector<llvm::Instruction*>& insts);
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::vector<llvm::Value*>& insts);
 
 /**
  * Output operator for a set of instructions.
@@ -25,7 +25,7 @@ llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::vector<llvm::Ins
  * @param insts The set of instructions.
  * @return os
  */
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::unordered_set<llvm::Instruction*>& insts);
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const std::unordered_set<llvm::Value*>& insts);
 
 /**
  * Output operator for a map of values to instructions that modify them.
@@ -46,5 +46,5 @@ llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const MAP_TYPE& map);
  */
 void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::Instruction*>& instructions);
 
-void printGenKillSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Instruction*>& instructions);
-void printInOutSets(llvm::raw_ostream& os, const llvm::Instruction* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Instruction*>& instructions);
+void printGenKillSets(llvm::raw_ostream& os, const llvm::Value* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Value*>& instructions);
+void printInOutSets(llvm::raw_ostream& os, const llvm::Value* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Value*>& instructions);

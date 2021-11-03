@@ -2,7 +2,7 @@
 
 #include "CatConstantPropagationProcessor.hpp"
 
-std::vector<llvm::Value*> CatConstantPropagationProcessor::getReplaceValues(llvm::Value* catVar, llvm::Instruction* replaceCandidate, bool& nonConstFound, std::unordered_set<llvm::Instruction*>& exploredNodes) {
+std::vector<llvm::Value*> CatConstantPropagationProcessor::getReplaceValues(llvm::Value* catVar, llvm::Value* replaceCandidate, bool& nonConstFound, std::unordered_set<llvm::Value*>& exploredNodes) {
 
     if (llvm::isa<llvm::CallInst>(replaceCandidate)) {
         return getCallInstReplaceValues(catVar, llvm::cast<llvm::CallInst>(replaceCandidate), nonConstFound, exploredNodes);
@@ -13,7 +13,7 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getReplaceValues(llvm
     return {};
 }
 
-std::vector<llvm::Value*> CatConstantPropagationProcessor::getCallInstReplaceValues(llvm::Value* catVar, llvm::CallInst* replaceCandidate, bool& nonConstFound, std::unordered_set<llvm::Instruction*>& exploredNodes) {
+std::vector<llvm::Value*> CatConstantPropagationProcessor::getCallInstReplaceValues(llvm::Value* catVar, llvm::CallInst* replaceCandidate, bool& nonConstFound, std::unordered_set<llvm::Value*>& exploredNodes) {
     std::vector<llvm::Value*> out;
     llvm::errs() << "    Checking value of: " << *replaceCandidate << "\n";
 
@@ -38,7 +38,7 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getCallInstReplaceVal
     return out;
 }
 
-std::vector<llvm::Value*> CatConstantPropagationProcessor::getPhiNodeReplaceValues(llvm::Value* catVar, llvm::PHINode* replaceCandidate, bool& nonConstFound, std::unordered_set<llvm::Instruction*>& exploredNodes) {
+std::vector<llvm::Value*> CatConstantPropagationProcessor::getPhiNodeReplaceValues(llvm::Value* catVar, llvm::PHINode* replaceCandidate, bool& nonConstFound, std::unordered_set<llvm::Value*>& exploredNodes) {
     std::vector<llvm::Value*> out;
 
     if (replaceCandidate == catVar) {
@@ -78,8 +78,8 @@ void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, 
         return;
     }
 
-    for (llvm::Instruction* value : dataDeps.instInSet) {
-        std::unordered_set<llvm::Instruction*> exploredNodes;
+    for (llvm::Value* value : dataDeps.instInSet) {
+        std::unordered_set<llvm::Value*> exploredNodes;
         std::vector<llvm::Value*> possibleReplacements = getReplaceValues(catVar, value, nonConstFound, exploredNodes);
         foundValues.insert(foundValues.end(), possibleReplacements.begin(), possibleReplacements.end());
     }
@@ -100,7 +100,7 @@ void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, 
     }
 }
 
-void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Instruction*>& escapedVariables) {
+void CatConstantPropagationProcessor::calculate(std::vector<llvm::Value*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Instruction*>& escapedVariables) {
     llvm::errs() << "Doing constant propagation\n";
 
     for (auto& inst : instructions) {

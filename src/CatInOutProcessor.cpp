@@ -60,7 +60,10 @@ llvm::Instruction* CatInOutProcessor::processInstruction(llvm::Instruction& inst
 }
 
 void CatInOutProcessor::print() {
-    for (llvm::Instruction* inst : *mappedInstructions_) {
-        printInOutSets(llvm::errs(), inst, dataDepsMap_->at(inst), *mappedInstructions_);
+    for (llvm::Value* inst : *mappedInstructions_) {
+        if (llvm::isa<llvm::Instruction>(inst)) {
+            llvm::Instruction* instInst = llvm::cast<llvm::Instruction>(inst);
+            printInOutSets(llvm::errs(), instInst, dataDepsMap_->at(instInst), *mappedInstructions_);
+        }
     }
 }

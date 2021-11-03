@@ -1,6 +1,6 @@
 #include "CatDataDependencies.hpp"
 
-void CatDataDependencies::generateInstructionSets(const std::vector<llvm::Instruction*> instructions) {
+void CatDataDependencies::generateInstructionSets(const std::vector<llvm::Value*> instructions) {
     for (std::size_t i = 0; i < instructions.size(); ++i) {
         if (genSet.size() > i && genSet.test(i)) {
             instGenSet.insert(instructions.at(i));
