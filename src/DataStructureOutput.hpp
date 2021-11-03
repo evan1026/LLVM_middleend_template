@@ -44,7 +44,7 @@ llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const MAP_TYPE& map);
  * @param bitVector Bit vector to print
  * @param instructions List of instructions that the bit vector corresponds to
  */
-void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::Instruction*>& instructions);
+void printBitVector(llvm::raw_ostream& os, const llvm::SmallBitVector& bitVector, const std::vector<llvm::Value*>& instructions);
 
 void printGenKillSets(llvm::raw_ostream& os, const llvm::Value* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Value*>& instructions);
 void printInOutSets(llvm::raw_ostream& os, const llvm::Value* callInst, const CatDataDependencies& dataDeps, const std::vector<llvm::Value*>& instructions);

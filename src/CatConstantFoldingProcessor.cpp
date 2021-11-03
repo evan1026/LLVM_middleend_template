@@ -31,6 +31,7 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
     llvm::Value* arg1Const = nullptr;
     llvm::Value* arg2Const = nullptr;
     bool phiFound = false;
+    bool argFound = false;
 
     for (llvm::Value* value : dataDeps.instInSet) {
         llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
@@ -54,9 +55,17 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
                 phiFound = true;
             }
         }
+
+        llvm::Argument* arg = llvm::dyn_cast<llvm::Argument>(value);
+        if (arg) {
+            if (arg == callInst->getArgOperand(1) || arg == callInst->getArgOperand(2)) {
+                llvm::errs() << "    This value is an argument to the function that wasn't overwritten: " << *arg << "\n";
+                argFound = true;
+            }
+        }
     }
 
-    if (arg1Const != nullptr && arg2Const != nullptr && !phiFound) {
+    if (arg1Const != nullptr && arg2Const != nullptr && !phiFound && !argFound) {
         llvm::errs() << "    This is a constant expression!\n";
         ArgPair pair{arg1Const, arg2Const};
         replacements.insert({callInst, pair});

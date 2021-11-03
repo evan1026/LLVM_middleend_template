@@ -50,6 +50,8 @@ class CatInOutProcessor {
      */
     llvm::Instruction* processInstruction(llvm::Instruction& inst, llvm::Instruction* prevInst);
 
+    llvm::SmallBitVector generateInitialInSet();
+
     public:
 
         /**

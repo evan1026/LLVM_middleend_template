@@ -12,6 +12,17 @@ void CatInOutProcessor::processOnce(llvm::Function& func) {
     }
 }
 
+llvm::SmallBitVector CatInOutProcessor::generateInitialInSet() {
+    llvm::SmallBitVector firstInSet;
+    for (std::size_t i = 0; i < mappedInstructions_->size(); ++i) {
+        if (llvm::isa<llvm::Argument>(mappedInstructions_->at(i))) {
+            firstInSet.resize(i+1);
+            firstInSet.set(i);
+        }
+    }
+    return firstInSet;
+}
+
 void CatInOutProcessor::process(llvm::Function& func) {
     do {
         processOnce(func);
@@ -22,10 +33,16 @@ void CatInOutProcessor::processBasicBlock(llvm::BasicBlock& bb) {
     llvm::Instruction* prevInst = nullptr;
     CatDataDependencies& bbDeps = bbDataDepsMap_[&bb];
 
-    bbDeps.inSet.clear();
+    if (&*bb.getParent()->begin() == &bb) {
+        bbDeps.inSet = generateInitialInSet();
+    } else {
+        bbDeps.inSet.clear();
+    }
+
     for (llvm::BasicBlock* pred : llvm::predecessors(&bb)) {
         bbDeps.inSet |= bbDataDepsMap_[pred].outSet; // Will automatically create empty entry if it doesn't exist
     }
+
 
     for (auto& inst : bb) {
         prevInst = processInstruction(inst, prevInst);

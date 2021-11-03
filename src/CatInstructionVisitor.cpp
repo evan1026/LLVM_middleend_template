@@ -13,6 +13,19 @@ void CatInstructionVisitor::checkVariableEscape(llvm::CallInst* callInst) {
     }
 }
 
+void CatInstructionVisitor::visit(llvm::Function& func) {
+    for (auto it = func.arg_begin(); it != func.arg_end(); ++it) {
+        mappedInstructions_.push_back(&*it);
+        addModification(&*it, &*it);
+    }
+
+    for (auto& bb : func) {
+        for (auto& inst : bb) {
+            visitInstruction(inst);
+        }
+    }
+}
+
 void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
     mappedInstructions_.push_back(&inst);
 
