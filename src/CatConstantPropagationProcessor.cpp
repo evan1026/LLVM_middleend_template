@@ -60,7 +60,7 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getPhiNodeReplaceValu
     return out;
 }
 
-void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Instruction*>& escapedVariables) {
     // At this point we know we're looking at a CAT instruction and it is a candidate for constant propagation
     auto catVar = callInst->getArgOperand(0);
     auto dataDeps = dataDepsMap.at(callInst);
@@ -72,6 +72,9 @@ void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, 
 
     if (llvm::isa<llvm::Argument>(catVar)) {
         llvm::errs() << "    CAT var is a function argument. We can't propagate it\n";
+        return;
+    } else if (llvm::isa<llvm::CallInst>(catVar) && escapedVariables.find(llvm::cast<llvm::CallInst>(catVar)) != escapedVariables.end()) {
+        llvm::errs() << "    CAT var escapes. We can't propagate it\n";
         return;
     }
 
@@ -97,7 +100,7 @@ void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, 
     }
 }
 
-void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap) {
+void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>& instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap, std::unordered_set<llvm::Instruction*>& escapedVariables) {
     llvm::errs() << "Doing constant propagation\n";
 
     for (auto& inst : instructions) {
@@ -105,7 +108,7 @@ void CatConstantPropagationProcessor::calculate(std::vector<llvm::Instruction*>&
         if (callInst) {
             const CatFunction* func = CatFunction::get(callInst->getCalledFunction()->getName().str());
             if (func && !func->isModification()) {
-                processFunction(callInst, dataDepsMap);
+                processFunction(callInst, dataDepsMap, escapedVariables);
             }
         }
     }

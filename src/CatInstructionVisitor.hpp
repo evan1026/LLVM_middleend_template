@@ -14,11 +14,14 @@ class CatInstructionVisitor : public llvm::InstVisitor<CatInstructionVisitor> {
 
     std::vector<llvm::Instruction*> mappedInstructions_; // List of all noteworthy instructions
     MAP_TYPE valueModificationMap_; // Maps values to all instructions that modify them
+    std::unordered_set<llvm::Instruction*> escapedInstructions_;
 
     /**
      * Adds the call instruction to the value modification map for the given value.
      */
     void addModification(llvm::Value*, llvm::Instruction*);
+
+    void checkVariableEscape(llvm::CallInst* callInst);
 
     public:
 
@@ -51,4 +54,6 @@ class CatInstructionVisitor : public llvm::InstVisitor<CatInstructionVisitor> {
          * @return The map
          */
         MAP_TYPE& getValueModifications() { return valueModificationMap_; }
+
+        auto& getEscapedVars() { return escapedInstructions_; }
 };

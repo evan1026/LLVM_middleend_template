@@ -42,7 +42,8 @@ namespace {
       std::vector<llvm::Instruction*>& instructions = instVisitor.getMappedInstructions();
       auto dataDepsMap = catDepsProcessor.getDataDependencies(F, instVisitor);
 
-      constPropProcessor.calculate(instructions, dataDepsMap);
+      auto& escapedVariables = instVisitor.getEscapedVars();
+      constPropProcessor.calculate(instructions, dataDepsMap, escapedVariables);
       constFoldProcessor.calculate(instructions, dataDepsMap);
 
       bool modification = false;

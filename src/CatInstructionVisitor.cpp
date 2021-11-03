@@ -5,6 +5,14 @@ void CatInstructionVisitor::addModification(llvm::Value* value, llvm::Instructio
     valueModificationMap_[value].insert(inst);  // operator[] will default construct vector if it's not there
 }
 
+void CatInstructionVisitor::checkVariableEscape(llvm::CallInst* callInst) {
+    for (auto it = callInst->arg_begin(); it != callInst->arg_end(); ++it) {
+        if (llvm::isa<llvm::Instruction>(*it)) {
+            escapedInstructions_.insert(llvm::cast<llvm::Instruction>(*it));
+        }
+    }
+}
+
 void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
     mappedInstructions_.push_back(&inst);
 
@@ -19,6 +27,8 @@ void CatInstructionVisitor::visitInstruction(llvm::Instruction& inst) {
                     addModification(callInst->getArgOperand(0), callInst);
                 }
             }
+        } else {
+            checkVariableEscape(callInst);
         }
     }
 
