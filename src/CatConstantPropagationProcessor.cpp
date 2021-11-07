@@ -8,6 +8,8 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getReplaceValues(llvm
         return getCallInstReplaceValues(catVar, llvm::cast<llvm::CallInst>(replaceCandidate), nonConstFound, exploredNodes);
     } else if (llvm::isa<llvm::PHINode>(replaceCandidate)) {
         return getPhiNodeReplaceValues(catVar, llvm::cast<llvm::PHINode>(replaceCandidate), nonConstFound, exploredNodes);
+    } else if (llvm::isa<llvm::LoadInst>(replaceCandidate)) {
+        return {replaceCandidate};
     }
 
     return {};
@@ -27,6 +29,7 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getCallInstReplaceVal
         } else if (func->isModification()) {
             if (func->isCalculation()) {
                 nonConstFound = true;
+                llvm::errs() << "        This instruction made the operand is not a constant!\n";
             } else {
                 if (replaceCandidate->getArgOperand(0) == catVar) {
                     llvm::errs() << "        This instruction made the operand and is a constant (CAT_set)!\n";
@@ -52,6 +55,7 @@ std::vector<llvm::Value*> CatConstantPropagationProcessor::getPhiNodeReplaceValu
                     out.insert(out.end(), replaceVals.begin(), replaceVals.end());
                 }
             } else if (llvm::isa<llvm::Argument>(phiUse.get())) {
+                llvm::errs() << "        " << *phiUse.get() << " is an argument, so we won't be able to propagate.\n";
                 nonConstFound = true;
             }
         }
@@ -97,6 +101,10 @@ void CatConstantPropagationProcessor::processFunction(llvm::CallInst* callInst, 
 
     if (!nonConstFound && allEqual && foundValues.size() > 0) {
         replacements.insert({callInst, foundValues[0]});
+    } else if (!allEqual) {
+        llvm::errs() << "    Not all values are equal, so we can't propagate\n";
+    } else if (nonConstFound) {
+        llvm::errs() << "    Non-constant value found among replacements, so we can't propagate\n";
     }
 }
 

@@ -14,7 +14,7 @@ class CatConstantFoldingProcessor {
     std::map<llvm::CallInst*, ArgPair> replacements;
 
     void processFunction(llvm::CallInst* callInst, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap);
-    llvm::Value* getArg(llvm::Value* argOperand, llvm::CallInst* callValue);
+    llvm::Value* getArg(llvm::Value* argOperand, llvm::CallInst* callValue, bool& nonConstFound);
 
     public:
         void calculate(std::vector<llvm::Value*> instructions, const std::map<llvm::Instruction*, CatDataDependencies>& dataDepsMap);

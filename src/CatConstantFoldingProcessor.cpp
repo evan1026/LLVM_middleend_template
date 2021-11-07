@@ -3,7 +3,7 @@
 #include "CatConstantFoldingProcessor.hpp"
 #include "CatFunction.hpp"
 
-llvm::Value* CatConstantFoldingProcessor::getArg(llvm::Value* argOperand, llvm::CallInst* callValue) {
+llvm::Value* CatConstantFoldingProcessor::getArg(llvm::Value* argOperand, llvm::CallInst* callValue, bool& nonConstFound) {
     const CatFunction* func = CatFunction::get(callValue->getCalledFunction()->getName().str());
     llvm::Value* out = nullptr;
     if (func) {
@@ -15,7 +15,12 @@ llvm::Value* CatConstantFoldingProcessor::getArg(llvm::Value* argOperand, llvm::
         } else if (func->isModification() && !func->isCalculation()) {
             if (callValue->getArgOperand(0) == argOperand) {
                 out = callValue->getArgOperand(1);
-                llvm::errs() << "        This instruction made and operand and is a constant (CAT_set)!\n";
+                llvm::errs() << "        This instruction made an operand and is a constant (CAT_set)!\n";
+            }
+        } else if (func->isCalculation()) {
+            if (callValue->getArgOperand(0) == argOperand) {
+                llvm::errs() << "        This instruction made an operand and is NOT a constant!\n";
+                nonConstFound = true;
             }
         }
     }
@@ -32,13 +37,14 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
     llvm::Value* arg2Const = nullptr;
     bool phiFound = false;
     bool argFound = false;
+    bool nonConstFound = false;
 
     for (llvm::Value* value : dataDeps.instInSet) {
         llvm::CallInst* callValue = llvm::dyn_cast<llvm::CallInst>(value);
         if (callValue) {
             llvm::errs() << "    Checking value of: " << *value << "\n";
-            llvm::Value* arg1 = getArg(callInst->getArgOperand(1), callValue);
-            llvm::Value* arg2 = getArg(callInst->getArgOperand(2), callValue);
+            llvm::Value* arg1 = getArg(callInst->getArgOperand(1), callValue, nonConstFound);
+            llvm::Value* arg2 = getArg(callInst->getArgOperand(2), callValue, nonConstFound);
 
             if (arg1 != nullptr) {
                 arg1Const = arg1;
@@ -65,7 +71,7 @@ void CatConstantFoldingProcessor::processFunction(llvm::CallInst* callInst, cons
         }
     }
 
-    if (arg1Const != nullptr && arg2Const != nullptr && !phiFound && !argFound) {
+    if (arg1Const != nullptr && arg2Const != nullptr && !phiFound && !argFound && !nonConstFound) {
         llvm::errs() << "    This is a constant expression!\n";
         ArgPair pair{arg1Const, arg2Const};
         replacements.insert({callInst, pair});
